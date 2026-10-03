@@ -1,0 +1,17 @@
+# Archivos de compilación
+**/bin/
+**/obj/
+dist/
+publish/
+
+# Visual Studio / IDE
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs y temporales de la app
+*.log
+AppPackages/
+BundleArtifacts/

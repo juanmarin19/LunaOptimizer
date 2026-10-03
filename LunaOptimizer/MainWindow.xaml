@@ -1,0 +1,162 @@
+<Window x:Class="LunaOptimizer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="LunaOptimizer"
+        Width="456" Height="664"
+        MinWidth="456" MinHeight="664" MaxWidth="456" MaxHeight="664"
+        ResizeMode="CanMinimize" WindowStyle="None"
+        WindowStartupLocation="CenterScreen" Background="#1E1E2E" Foreground="White">
+    <WindowChrome.WindowChrome>
+        <!-- CaptionHeight=0: si es 32 toda la banda superior es HTCAPTION y
+             los botones de minimizar/cerrar reciben el drag en vez del click -->
+        <WindowChrome CaptionHeight="0" CornerRadius="0" ResizeBorderThickness="0"
+                      GlassFrameThickness="0" NonClientFrameEdges="None"
+                      UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+    <Window.Resources>
+        <!-- Item de navegacion lateral tipo PC Manager: icono + etiqueta -->
+        <Style x:Key="NavBtn" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#D0D4E8"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Margin" Value="6,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="10" Padding="4,7">
+                            <StackPanel>
+                                <TextBlock Text="{TemplateBinding Tag}" FontSize="17" HorizontalAlignment="Center"
+                                           TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                <TextBlock Text="{TemplateBinding Content}" FontSize="10" HorizontalAlignment="Center"
+                                           Margin="0,3,0,0" TextElement.Foreground="{TemplateBinding Foreground}"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#2A2B3D"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#CBA6F7"/>
+                                <Setter Property="Foreground" Value="#11111B"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Boton de barra de titulo -->
+        <Style x:Key="CaptionBtn" TargetType="Button">
+            <Setter Property="Width" Value="44"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#D0D4E8"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#3B3D52"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CloseBtn" TargetType="Button" BasedOn="{StaticResource CaptionBtn}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E64553"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Border BorderBrush="#313244" BorderThickness="1" Background="#1E1E2E">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="32"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Barra de titulo propia: client total = 456x664 como PC Manager -->
+            <Grid Grid.Row="0" Background="#11111B">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Background="Transparent" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                    <TextBlock Text="LunaOptimizer" FontSize="11" Foreground="#D0D4E8"
+                               VerticalAlignment="Center" Margin="12,0,0,0"/>
+                </Border>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Style="{StaticResource CaptionBtn}" Content="&#x2500;" Click="BtnMin_Click" ToolTip="Minimizar"/>
+                    <Button Style="{StaticResource CloseBtn}" Content="&#x2715;" Click="BtnClose_Click" ToolTip="Cerrar"/>
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="74"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Rail lateral -->
+                <Border Grid.Column="0" Background="#11111B">
+                    <DockPanel LastChildFill="False">
+                        <Border DockPanel.Dock="Top" Margin="0,10,0,8">
+                            <Border Background="#CBA6F7" CornerRadius="10" Width="36" Height="36">
+                                <TextBlock Text="L" FontSize="20" FontWeight="Bold" Foreground="#11111B"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Border>
+                        <RadioButton x:Name="NavBoost" Style="{StaticResource NavBtn}" Tag="&#x26A1;" Content="Boost"
+                                     DockPanel.Dock="Top" IsChecked="True" Checked="NavBoost_Checked"/>
+                        <RadioButton x:Name="NavProc" Style="{StaticResource NavBtn}" Tag="&#x1F4CB;" Content="Procesos"
+                                     DockPanel.Dock="Top" Checked="NavProc_Checked"/>
+                        <RadioButton x:Name="NavClean" Style="{StaticResource NavBtn}" Tag="&#x1F9F9;" Content="Limpieza"
+                                     DockPanel.Dock="Top" Checked="NavClean_Checked"/>
+                    </DockPanel>
+                </Border>
+
+                <!-- Contenido -->
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="#2A2B3D" CornerRadius="12" Padding="14,10" Margin="10,10,10,8">
+                        <StackPanel>
+                            <TextBlock Text="Estado del equipo" FontSize="15" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock x:Name="TxtMem" Text="RAM: ..." FontSize="11" Foreground="#D0D4E8" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <ContentControl x:Name="Host" Grid.Row="1" Margin="10,0,10,0" Focusable="False"/>
+
+                    <Border Grid.Row="2" Background="#11111B" Padding="12,7" Margin="10,6,10,8" CornerRadius="8">
+                        <TextBlock x:Name="TxtStatus" Text="Listo." FontSize="11" Foreground="#D0D4E8"/>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

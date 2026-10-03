@@ -1,0 +1,42 @@
+<UserControl x:Class="LunaOptimizer.Views.CleanerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Background="#1E1E2E">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Background="#2A2B3D" CornerRadius="10" Padding="8,8" Margin="0,0,0,8">
+        <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Button x:Name="BtnAnalyze" Content="Analizar" Click="BtnAnalyze_Click" Padding="10,5" FontSize="12" Margin="0,0,6,0" Background="#CBA6F7" Foreground="#11111B"/>
+            <Button x:Name="BtnClean" Content="Limpiar" Click="BtnClean_Click" Padding="10,5" FontSize="12" Margin="0,0,6,0" Background="#A6E3A1" Foreground="#11111B"/>
+            <ProgressBar x:Name="Bar" Width="110" Height="10" Margin="6,0,0,0" IsIndeterminate="True" Visibility="Collapsed" Foreground="#CBA6F7" Background="#313244" BorderThickness="0"/>
+        </WrapPanel>
+        </Border>
+        <ListView Grid.Row="1" x:Name="List" SelectionMode="Extended" Background="#11111B" Foreground="White" BorderThickness="0" FontSize="13"
+                  ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="" Width="34">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding Icon}" Width="18" Height="18" Stretch="Uniform"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="App" Width="218">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" Foreground="White" FontSize="13"
+                                           TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Tamano" DisplayMemberBinding="{Binding Size}" Width="90"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <TextBlock Grid.Row="2" x:Name="TxtStatus" Text="..." Foreground="#D0D4E8" FontSize="13" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>
