@@ -124,13 +124,22 @@ public static class DeepCleanService
         }
         catch { }
 
-        foreach (var path in new[]
+        try
         {
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Winapp2.ini"),
-            @"D:\LunaOptimizer\LunaOptimizer\Winapp2.ini",
-        })
+            var local = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Winapp2.ini");
+            if (File.Exists(local)) return File.ReadAllText(local);
+        }
+        catch { }
+
+        // en desarrollo: sube desde bin\ hasta encontrarlo (sobrevive a mover la carpeta del proyecto)
+        var dir = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+        for (int i = 0; i < 6 && dir is not null; i++, dir = dir.Parent)
         {
-            try { if (File.Exists(path)) return File.ReadAllText(path); }
+            try
+            {
+                var f = Path.Combine(dir.FullName, "Winapp2.ini");
+                if (File.Exists(f)) return File.ReadAllText(f);
+            }
             catch { }
         }
         return null;
