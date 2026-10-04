@@ -110,6 +110,12 @@ cierra lo que tú marques y confirmes en la pestaña *Procesos*.
 **¿No arranca / se cierra solo?** Revisa el log de errores en
 `%LOCALAPPDATA%\LunaOptimizer\errores.log` y ábrelo como incidencia en GitHub.
 
+**¿Windows o el navegador dicen que es un troyano?** Es una **falsa positiva**: el
+`.exe` no está firmado y Defender/SmartScreen avisan a ciegas contra los programas
+sin reputación (el binario escanea limpio con Windows Defender). Si el navegador
+bloquea la descarga, abre *Descargas* y elige **Conservar / Permitir en este
+dispositivo**; al ejecutarlo, pulsa **Más información → Ejecutar de todos modos**.
+
 **¿Por qué no hay icono de maximizar?** Porque la ventana es fija (456×664), al
 igual que Microsoft PC Manager. Sí se puede minimizar.
 
