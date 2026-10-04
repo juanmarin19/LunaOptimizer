@@ -11,7 +11,7 @@ Una sola ventana de 456×664 con tres pestañas: **Inicio**, **Procesos** y **Li
 
 ## Descargar
 
-1. Entra en **[Releases](https://github.com/juanmarin19/LunaOptimizer/releases)** y descarga **`LunaOptimizer-v4.exe`**.
+1. Entra en **[Releases](https://github.com/juanmarin19/LunaOptimizer/releases)** y descarga **`LunaOptimizer-V1.exe`**.
 2. Doble clic → acepta el **UAC** (Windows pregunta por permiso de administrador).
 3. Ya está: no hay instalador, puedes dejarlo en el Escritorio o en una memoria USB.
 
