@@ -146,17 +146,34 @@ public partial class HomeView : UserControl
 
     private async void BtnQuickClean_Click(object sender, RoutedEventArgs e)
     {
+        var answer = MessageBox.Show(
+            "Limpieza rapida: como un reinicio, sin reiniciar.\n\n" +
+            "  - Se cierran tus aplicaciones abiertas (navegador, Discord...)\n" +
+            "  - Se borran temporales, caches y la DNS\n" +
+            "  - Se libera la memoria RAM\n\n" +
+            "Lo que no hayas guardado en las apps se pierde. ¿Continuar?",
+            "Limpieza rapida", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        if (answer != MessageBoxResult.Yes) return;
+
         BtnQuickClean.IsEnabled = false;
         BtnBoost.IsEnabled = false;
         BarAct.Visibility = Visibility.Visible;
-        TxtHint.Text = "Limpiando archivos temporales...";
+        var prog = new Progress<string>(s => TxtHint.Text = s);
         try
         {
-            var r = await TempCleaner.QuickCleanAsync(new Progress<string>(s => TxtHint.Text = s));
+            var (closed, failedClose) = await Task.Run(() => ProcessService.CloseAllApps(prog));
+            var r = await TempCleaner.QuickCleanAsync(prog);
+            var (trimmed, gained, _) = await Task.Run(() => MemoryBoost.Boost());
+
             _lastClean = DateTime.Now;
             UpdateLastClean();
-            TxtHint.Text = $"Limpieza rapida: {r.FilesDeleted} archivos borrados, {TempCleaner.FormatBytes(r.BytesFreed)} liberados ({r.Errors} en uso).";
-            _status($"Limpieza rapida: {TempCleaner.FormatBytes(r.BytesFreed)} liberados.");
+            string extra = failedClose > 0 ? $", {failedClose} protegidos" : "";
+            TxtHint.Text = $"Reinicio limpio: {closed} procesos cerrados{extra}, " +
+                           $"{r.FilesDeleted} temporales borrados ({TempCleaner.FormatBytes(r.BytesFreed)}), " +
+                           $"+{gained} MB de RAM ({DateTime.Now:HH:mm}).";
+            _status($"Limpieza rapida: {closed} procesos cerrados, {TempCleaner.FormatBytes(r.BytesFreed)} borrados, +{gained} MB de RAM.");
+            UpdateMemory();
+            UpdateApps();
             _ = UpdateTempAsync();
         }
         catch (Exception ex) { TxtHint.Text = "Error: " + ex.Message; }

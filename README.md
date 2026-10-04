@@ -32,7 +32,7 @@ Una sola ventana de 456×664 con tres pestañas: **Inicio**, **Procesos** y **Li
 | Zona | Qué hace |
 |---|---|
 | **Mejorar el rendimiento** | Vacía la *working set* de todos los procesos y fuerza el GC. **No cierra ninguna app.** Muestra los procesos optimizados y la RAM ganada. |
-| **Limpieza rápida** | Borra archivos temporales (`%TEMP%`, `C:\Windows\Temp`, *Delivery Optimization*, *INetCache*) y hace `ipconfig /flushdns`. |
+| **Limpieza rápida** | Como un reinicio sin reiniciar (pide confirmación): cierra todas tus aplicaciones abiertas y de fondo —nunca servicios ni nada de `C:\Windows`—, borra temporales (`%TEMP%`, `C:\Windows\Temp`, *Delivery Optimization*, *INetCache*), hace `ipconfig /flushdns` y libera la RAM. |
 | **Tarjetas de estado** | Aplicaciones en curso, disco local (C:), memoria libre y **última limpieza** (hora). |
 | **Limpieza profunda** | Abre directamente la pantalla de escaneo profundo. |
 

@@ -54,6 +54,8 @@ public static class ProcessService
         "dwm", "system", "registry", "idle", "fontdrvhost", "wdf01000",
         "svchost", "memory compression", "sihost", "taskhostw", "audiodg",
         "securityhealthservice", "wudfhost",
+        // motor de Defender y demas servicios que no conviene tocar
+        "msmpeng", "sgrmbroker", "searchindexer", "spoolsv", "defendersessionhelper",
     };
 
     private static readonly Dictionary<string, BitmapSource?> _iconCache = new(StringComparer.OrdinalIgnoreCase);
@@ -245,6 +247,70 @@ public static class ProcessService
             try { p.Kill(); return true; }
             catch { return false; }
         }
+    }
+
+    /// Reinicio "suave": cierra todas las aplicaciones del usuario (con ventana
+    /// y de fondo) sin tocar el sistema. Igual que un apagado de Windows pero
+    /// sin reiniciar: primero aviso de cierre ordenado (WM_CLOSE) para que las
+    /// apps puedan guardar, espera corta y luego cierra lo que quede vivo.
+    /// Solo cierra procesos de la sesion del usuario cuyo exe NO viva en
+    /// C:\Windows (servicios, ctfmon, shellhost, lockapp... se conservan).
+    public static (int closed, int failed) CloseAllApps(IProgress<string>? progress = null)
+    {
+        int mySession;
+        try { mySession = Process.GetCurrentProcess().SessionId; } catch { mySession = -1; }
+        string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+
+        var targets = new List<Process>();
+        foreach (var p in Process.GetProcesses())
+        {
+            try
+            {
+                string name = p.ProcessName;
+                if (ProtectedNames.Contains(name) || NotAnApp(name)) { p.Dispose(); continue; }
+                if (p.SessionId != mySession) { p.Dispose(); continue; }
+                string path;
+                try { path = p.MainModule?.FileName ?? ""; } catch { path = ""; }
+                if (string.IsNullOrEmpty(path) ||
+                    path.StartsWith(winDir, StringComparison.OrdinalIgnoreCase))
+                { p.Dispose(); continue; }
+                targets.Add(p);
+            }
+            catch { try { p.Dispose(); } catch { } }
+        }
+        progress?.Report($"Cerrando aplicaciones ({targets.Count} procesos)...");
+
+        // 1) aviso de cierre ordenado a las que tienen ventana
+        foreach (var p in targets)
+        {
+            try { if (p.MainWindowHandle != IntPtr.Zero) p.CloseMainWindow(); }
+            catch { }
+        }
+        // 2) espera global de maximo 2 s para que guarden
+        int deadline = Environment.TickCount + 2000;
+        foreach (var p in targets)
+        {
+            try { p.WaitForExit(Math.Max(0, deadline - Environment.TickCount)); }
+            catch { }
+        }
+        // 3) los que sigan vivos: cierre forzado del arbol completo
+        int closed = 0, failed = 0;
+        foreach (var p in targets)
+        {
+            try
+            {
+                if (p.HasExited) closed++;
+                else if (KillCore(p))
+                {
+                    try { p.WaitForExit(1000); } catch { }
+                    closed++;
+                }
+                else failed++;
+            }
+            catch { failed++; }
+            finally { try { p.Dispose(); } catch { } }
+        }
+        return (closed, failed);
     }
 
     private const string MEM_DLL = "kernel32.dll";
