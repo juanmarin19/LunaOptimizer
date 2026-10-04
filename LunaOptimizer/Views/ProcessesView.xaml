@@ -23,6 +23,7 @@
                 <Button x:Name="BtnLocation" Content="Ubicacion" Style="{StaticResource CompactBtn}" Click="BtnLocation_Click"/>
                 <CheckBox x:Name="ChkGroup" Content="Agrupar" Foreground="White" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" IsChecked="True" Checked="ChkGroup_Changed" Unchecked="ChkGroup_Changed" ToolTip="Una fila por programa (brave x8)"/>
                 <CheckBox x:Name="ChkAuto" Content="Auto 2s" Foreground="White" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" Checked="ChkAuto_Checked" Unchecked="ChkAuto_Unchecked"/>
+                <CheckBox x:Name="ChkTodos" Content="Ver todos" Foreground="White" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" Checked="ChkTodos_Changed" Unchecked="ChkTodos_Changed" ToolTip="Mostrar tambien procesos del sistema y de fondo"/>
                 <TextBlock x:Name="TxtCount" Text="" Foreground="#B9B9B9" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
             </WrapPanel>
         </Border>

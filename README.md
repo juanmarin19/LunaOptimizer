@@ -38,19 +38,26 @@ Una sola ventana de 456×664 con tres pestañas: **Inicio**, **Procesos** y **Li
 
 ### 📋 Procesos
 
-Lista todos los procesos ordenados por consumo de RAM, con icono, PID, consumo y estado.
+Lista **solo las aplicaciones que es seguro cerrar**: las que tienen una ventana
+visible y no pertenecen al sistema — el mismo criterio que usa *Microsoft PC Manager*.
+Los procesos de fondo (`svchost`, `SearchHost`, `TextInputHost`, hosts de Windows…)
+y este propio programa no aparecen.
 
-| Botón | Qué hace |
+| Control | Qué hace |
 |---|---|
 | **Actualizar** | Vuelve a leer la lista. |
-| **Terminar** | Cierra los procesos seleccionados (y sus hijos). Hay una confirmación previa. |
+| **Terminar** | Cierra el proceso seleccionado (y sus hijos). Hay una confirmación previa. |
 | **Ubicación** | Abre la carpeta donde está el `.exe` del proceso seleccionado. |
+| **Agrupar** | Una fila por programa con todos sus PIDs y su RAM total (activado por defecto). |
+| **Auto 2s** | Refresca la lista sola cada dos segundos. |
+| **Ver todos** | Muestra también los procesos del sistema y de fondo (modo avanzado). |
 
 - Escribe en el cuadro de **búsqueda** para filtrar por nombre.
 - Con **Agrupar** activado, cada programa es una fila con todos sus PIDs y su RAM total.
-- Con **Auto 2s** la lista se refresca sola cada dos segundos.
-- **No se pueden cerrar** los procesos del sistema (`csrss`, `lsass`, `dwm`,
-  `svchost`, `explorer`, *Memory Compression*…): están en una lista protegida.
+- **Nunca** se pueden cerrar los procesos del sistema (`csrss`, `lsass`, `dwm`,
+  `svchost`, `explorer`, *Memory Compression*…): están en una lista protegida,
+  y si activas **Ver todos** aparecen marcados como no cerrables.
+- Si un programa "no responde", selecciónalo y pulsa **Terminar**.
 
 ### 🧹 Limpieza
 

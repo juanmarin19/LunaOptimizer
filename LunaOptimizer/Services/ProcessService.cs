@@ -37,6 +37,17 @@ public static class IconHelper
 
 public static class ProcessService
 {
+    private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
     private static readonly HashSet<string> ProtectedNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "explorer", "csrss", "wininit", "services", "lsass", "smss", "winlogon",
@@ -47,9 +58,47 @@ public static class ProcessService
 
     private static readonly Dictionary<string, BitmapSource?> _iconCache = new(StringComparer.OrdinalIgnoreCase);
 
-    public static List<ProcessInfo> GetProcesses(string filter = "")
+    /// Hosts de Windows que aunque se puedan cerrar no son aplicaciones del
+    /// usuario (los mismos que omite PC Manager), mas este propio programa.
+    private static readonly HashSet<string> NotApps = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "textinputhost", "searchhost", "searchui", "startmenuexperiencehost",
+        "shellexperiencehost", "applicationframehost", "runtimebroker",
+        "widgets", "peopleexperiencehost", "securityhealthsystray",
+    };
+
+    private static bool NotAnApp(string name)
+        => NotApps.Contains(name) ||
+           name.StartsWith("LunaOptimizer", StringComparison.OrdinalIgnoreCase);
+
+    /// Procesos que tienen al menos una ventana visible: son las
+    /// "aplicaciones" que el usuario puede ver y cerrar con seguridad.
+    public static HashSet<int> VisibleWindowPids()
+    {
+        var set = new HashSet<int>();
+        try
+        {
+            EnumWindows((h, l) =>
+            {
+                try
+                {
+                    if (!IsWindowVisible(h)) return true;
+                    uint pid;
+                    GetWindowThreadProcessId(h, out pid);
+                    if (pid > 0) set.Add((int)pid);
+                }
+                catch { }
+                return true;
+            }, IntPtr.Zero);
+        }
+        catch { }
+        return set;
+    }
+
+    public static List<ProcessInfo> GetProcesses(string filter = "", bool onlySafe = true)
     {
         var list = new List<ProcessInfo>();
+        var winPids = onlySafe ? VisibleWindowPids() : null;
         foreach (var p in Process.GetProcesses())
         {
             string name;
@@ -67,12 +116,15 @@ public static class ProcessService
                 try { p.Dispose(); } catch { }
                 continue;
             }
+            // Solo lo que se puede ver y cerrar: ni del sistema, ni de fondo.
+            bool canKill = !ProtectedNames.Contains(name) && p.Id != Environment.ProcessId;
+            if (onlySafe && (!canKill || !winPids!.Contains(p.Id) || NotAnApp(name)))
+            { try { p.Dispose(); } catch { } continue; }
             if (!string.IsNullOrWhiteSpace(filter) &&
                 !name.Contains(filter, StringComparison.OrdinalIgnoreCase))
             { try { p.Dispose(); } catch { } continue; }
             string status = "OK";
             try { if (p.Responding == false) status = "No responde"; } catch { }
-            bool canKill = !ProtectedNames.Contains(name) && p.Id != Environment.ProcessId;
             BitmapSource? icon = null;
             if (!string.IsNullOrEmpty(path))
                 icon = GetIconCached(path);
@@ -93,9 +145,9 @@ public static class ProcessService
     public static bool IsProtected(string name, int pid)
         => ProtectedNames.Contains(name) || pid == Environment.ProcessId;
 
-    public static List<ProcessGroup> GetGroups(string filter = "")
+    public static List<ProcessGroup> GetGroups(string filter = "", bool onlySafe = true)
     {
-        var all = GetProcesses(filter);
+        var all = GetProcesses(filter, onlySafe);
         return all.GroupBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
             .Select(g =>
             {

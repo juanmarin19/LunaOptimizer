@@ -16,3 +16,4 @@ publish/
 AppPackages/
 BundleArtifacts/
 out/
+app.test.manifest

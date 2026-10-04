@@ -22,6 +22,8 @@ public partial class ProcessesView : UserControl
         if (ColPids is null || ColName is null || ColRam is null) return;
         var filter = TxtFilter?.Text ?? "";
         bool grouped = ChkGroup?.IsChecked != false;
+        // Por defecto solo apps con ventana visible y seguras de cerrar.
+        bool onlySafe = !(ChkTodos?.IsChecked == true);
         ColPids.Visibility = grouped ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
         if (grouped)
         {
@@ -29,7 +31,7 @@ public partial class ProcessesView : UserControl
             ColName.Binding = new System.Windows.Data.Binding("Display");
             ColRam.Header = "RAM MB";
             ColRam.Binding = new System.Windows.Data.Binding("TotalRamMB");
-            var groups = await Task.Run(() => ProcessService.GetGroups(filter));
+            var groups = await Task.Run(() => ProcessService.GetGroups(filter, onlySafe));
             Grid.ItemsSource = groups;
             int totalProcs = groups.Sum(g => g.Count);
             TxtCount.Text = $"{groups.Count} apps ({totalProcs} procesos)";
@@ -40,7 +42,7 @@ public partial class ProcessesView : UserControl
             ColName.Binding = new System.Windows.Data.Binding("Name");
             ColRam.Header = "RAM MB";
             ColRam.Binding = new System.Windows.Data.Binding("RamMB");
-            var items = await Task.Run(() => ProcessService.GetProcesses(filter));
+            var items = await Task.Run(() => ProcessService.GetProcesses(filter, onlySafe));
             Grid.ItemsSource = items;
             TxtCount.Text = $"{items.Count} procesos";
         }
@@ -107,6 +109,8 @@ public partial class ProcessesView : UserControl
     }
 
     private void ChkGroup_Changed(object sender, RoutedEventArgs e) => Refresh();
+
+    private void ChkTodos_Changed(object sender, RoutedEventArgs e) => Refresh();
 
     private void ChkAuto_Checked(object sender, RoutedEventArgs e)
     {
