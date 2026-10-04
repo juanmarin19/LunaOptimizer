@@ -124,11 +124,6 @@
                 <!-- Rail lateral -->
                 <Border Grid.Column="0" Background="#0F0F0F">
                     <DockPanel LastChildFill="False">
-                        <Border DockPanel.Dock="Top" Margin="0,12,0,10">
-                            <Border Width="56" Height="56" CornerRadius="14" HorizontalAlignment="Center" Background="#0F0F0F">
-                                <Image Source="LunaOptimizer.ico" Width="56" Height="56" Stretch="Uniform"/>
-                            </Border>
-                        </Border>
                         <RadioButton x:Name="NavHome" Style="{StaticResource NavBtn}" Tag="&#x1F3E0;" Content="Inicio"
                                      DockPanel.Dock="Top" IsChecked="True" Checked="NavHome_Checked"/>
                         <RadioButton x:Name="NavProc" Style="{StaticResource NavBtn}" Tag="&#x1F4CB;" Content="Procesos"
