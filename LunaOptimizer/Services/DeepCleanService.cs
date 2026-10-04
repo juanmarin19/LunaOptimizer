@@ -127,7 +127,7 @@ public static class DeepCleanService
         foreach (var path in new[]
         {
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Winapp2.ini"),
-            @"D:\LunaOptimizer\FluentCleaner\Winapp2.ini",
+            @"D:\LunaOptimizer\LunaOptimizer\Winapp2.ini",
         })
         {
             try { if (File.Exists(path)) return File.ReadAllText(path); }

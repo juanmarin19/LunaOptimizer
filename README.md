@@ -120,7 +120,7 @@ igual que Microsoft PC Manager. Sí se puede minimizar.
 Necesitas [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
 
 ```powershell
-git clone --recurse-submodules https://github.com/juanmarin19/LunaOptimizer.git
+git clone https://github.com/juanmarin19/LunaOptimizer.git
 cd LunaOptimizer
 
 # Compilar
@@ -132,8 +132,8 @@ dotnet publish .\LunaOptimizer\LunaOptimizer.csproj -c Release -r win-x64 `
   -p:IncludeNativeLibrariesForSelfExtract=true -o .\out
 ```
 
-> El `FluentCleaner` que está a la par es un **submódulo**: si clonas sin
-> `--recurse-submodules` el proyecto no compila.
+> Todo el código va dentro del propio repo (incluidos `FluentCleaner.Core` y
+> `Winapp2.ini`): **no hay submódulos**, un `git clone` normal ya compila.
 
 ---
 

@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- netstandard2.0 so this lib works from both the classic net48 WinForms app
+         and, down the road, the existing net10 WinUI app if we ever want to share it -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>FluentCleaner</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- netstandard2.0 has no built-in System.Text.Json, net48 doesn't ship it either;
+         pull it from NuGet, it's down-level compatible all the way to net46 -->
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <!-- old corlibs don't know about System.Index/Range (a[..^1] syntax);this polyfill
+         just supplies the two structs so the C# 8 range syntax we ported as-is still compiles -->
+    <PackageReference Include="IndexRange" Version="1.0.3" />
+    <!-- netstandard2.0 has no Microsoft.Win32.Registry types built in;net48 has them
+         natively, but the package keeps this project buildable/usable from both TFMs -->
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+  </ItemGroup>
+
+</Project>
