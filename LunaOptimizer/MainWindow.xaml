@@ -93,7 +93,7 @@
     <Border BorderBrush="#333333" BorderThickness="1" Background="#1A1A1A">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="32"/>
+                <RowDefinition Height="40"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -105,7 +105,7 @@
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0" Background="Transparent" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                        <Image Source="LunaOptimizer.ico" Width="20" Height="20" Margin="0,0,8,0" Stretch="Uniform"/>
+                        <Image Source="LunaOptimizer.ico" Width="32" Height="32" Margin="0,0,8,0" Stretch="Uniform"/>
                         <TextBlock Text="LunaOptimizer" FontSize="11" Foreground="#B9B9B9" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
@@ -125,8 +125,8 @@
                 <Border Grid.Column="0" Background="#0F0F0F">
                     <DockPanel LastChildFill="False">
                         <Border DockPanel.Dock="Top" Margin="0,12,0,10">
-                            <Border Width="46" Height="46" CornerRadius="12" HorizontalAlignment="Center" Background="#0F0F0F">
-                                <Image Source="LunaOptimizer.ico" Width="46" Height="46" Stretch="Uniform"/>
+                            <Border Width="56" Height="56" CornerRadius="14" HorizontalAlignment="Center" Background="#0F0F0F">
+                                <Image Source="LunaOptimizer.ico" Width="56" Height="56" Stretch="Uniform"/>
                             </Border>
                         </Border>
                         <RadioButton x:Name="NavHome" Style="{StaticResource NavBtn}" Tag="&#x1F3E0;" Content="Inicio"
