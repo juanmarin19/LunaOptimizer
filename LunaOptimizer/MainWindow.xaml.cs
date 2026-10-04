@@ -12,20 +12,22 @@ namespace LunaOptimizer;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private readonly BoostView _boost;
+    private readonly HomeView _home;
     private readonly ProcessesView _processes;
     private readonly CleanerView _cleaner;
+    private readonly DeepCleanView _deep;
     private readonly DispatcherTimer _memTimer;
 
     public MainWindow()
     {
         InitializeComponent();
 
-        _boost = new BoostView();
+        _home = new HomeView(Navigate, s => TxtStatus.Text = s);
         _processes = new ProcessesView();
-        _cleaner = new CleanerView();
+        _cleaner = new CleanerView(Navigate);
+        _deep = new DeepCleanView(Navigate, s => TxtStatus.Text = s);
 
-        Host.Content = _boost;
+        Host.Content = _home;
 
         RefreshMem();
         _memTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
@@ -43,11 +45,40 @@ public partial class MainWindow : Window
 
     private void BtnClose_Click(object sender, RoutedEventArgs e) => Close();
 
-    private void NavBoost_Checked(object sender, RoutedEventArgs e)
+    /// Navegacion desde las tarjetas del Inicio y desde Limpieza.
+    private void Navigate(string target)
+    {
+        switch (target)
+        {
+            case "proc": NavProc.IsChecked = true; break;
+            case "clean": NavClean.IsChecked = true; break;
+            case "deep": ShowDeep("home"); break;
+            case "deepclean": ShowDeep("clean"); break;
+            default: NavHome.IsChecked = true; break;
+        }
+    }
+
+    /// Pantalla de limpieza profunda estilo PC Manager: sin ningun radio
+    /// marcado, para que cualquier clic del rail dispare su Checked y salga.
+    private void ShowDeep(string back)
+    {
+        NavHome.IsChecked = false;
+        NavProc.IsChecked = false;
+        NavClean.IsChecked = false;
+        _deep.BackTarget = back;
+        Host.Content = _deep;
+        if (TxtTitle is not null) TxtTitle.Text = "Limpieza profunda";
+        if (TxtStatus is not null) TxtStatus.Text = "Limpieza profunda.";
+        _deep.OnShown();
+    }
+
+    private void NavHome_Checked(object sender, RoutedEventArgs e)
     {
         if (Host is null) return;
-        Host.Content = _boost;
-        if (TxtStatus is not null) TxtStatus.Text = "Rendimiento.";
+        Host.Content = _home;
+        if (TxtTitle is not null) TxtTitle.Text = "Inicio";
+        if (TxtStatus is not null) TxtStatus.Text = "Inicio.";
+        _home.Refresh();
     }
 
     private void NavProc_Checked(object sender, RoutedEventArgs e)
@@ -55,6 +86,7 @@ public partial class MainWindow : Window
         if (Host is null) return;
         Host.Content = _processes;
         _processes.Refresh();
+        if (TxtTitle is not null) TxtTitle.Text = "Procesos";
         if (TxtStatus is not null) TxtStatus.Text = "Procesos.";
     }
 
@@ -62,6 +94,7 @@ public partial class MainWindow : Window
     {
         if (Host is null) return;
         Host.Content = _cleaner;
+        if (TxtTitle is not null) TxtTitle.Text = "Limpieza";
         if (TxtStatus is not null) TxtStatus.Text = "Limpieza.";
     }
 
@@ -70,8 +103,9 @@ public partial class MainWindow : Window
         try
         {
             var (total, free) = ProcessService.GetMemory();
-            TxtMem.Text = $"RAM: {free} MB libres de {total} MB";
+            if (TxtSub is not null) TxtSub.Text = $"RAM: {free} MB libres de {total} MB";
+            _home?.UpdateMemory();
         }
-        catch (Exception ex) { TxtStatus.Text = ex.Message; }
+        catch (Exception ex) { if (TxtStatus is not null) TxtStatus.Text = ex.Message; }
     }
 }

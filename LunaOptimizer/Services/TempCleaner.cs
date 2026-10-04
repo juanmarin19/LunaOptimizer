@@ -97,7 +97,7 @@ public static class TempCleaner
     /// Recorrido manual en profundidad: si un subdirectorio lanza (bloqueado,
     /// permisos, junction roto) se salta ESE directorio y sigue. Nunca vuelve a
     /// llamar a MoveNext sobre un enumerador ya fallado (bucle infinito).
-    private static IEnumerable<string> SafeEnumerateFiles(string dir)
+    public static IEnumerable<string> SafeEnumerateFiles(string dir)
     {
         var pending = new Stack<string>();
         pending.Push(dir);
@@ -122,7 +122,7 @@ public static class TempCleaner
 
     /// Todos los subdirectorios (sin reparse) ordenados del mas profundo al mas
     /// shallow, para poder borrar vacios de dentro hacia fuera.
-    private static List<string> SafeEnumerateDirs(string dir)
+    public static List<string> SafeEnumerateDirs(string dir)
     {
         var result = new List<string>();
         var pending = new Stack<string>();

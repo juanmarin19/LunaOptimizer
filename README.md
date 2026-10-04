@@ -1,7 +1,7 @@
 # LunaOptimizer ⚡
 
 Optimizador de PC para **Windows 10/11** con interfaz estilo *Microsoft PC Manager*.
-Una sola ventana de 456×664 con tres pestañas: **Boost**, **Procesos** y **Limpieza**.
+Una sola ventana de 456×664 con tres pestañas: **Inicio**, **Procesos** y **Limpieza**.
 
 - **Sin instalación**: es un `.exe` único y autocontenido (no hace falta tener .NET instalado).
 - **Todo en español**, sin telemetría, sin anuncios, sin suscripciones.
@@ -25,16 +25,19 @@ Una sola ventana de 456×664 con tres pestañas: **Boost**, **Procesos** y **Lim
 
 ## Cómo se usa
 
-### ⚡ Boost
-| Botón | Qué hace | Cuándo usarlo |
-|---|---|---|
-| **Optimizar RAM ahora** | Vacía la *working set* de todos los procesos y fuerza el GC. **No cierra ninguna app.** | Cuando la PC va lenta y tienes muchas cosas abiertas. |
-| **Limpiar temporales** | Borra archivos temporales (`%TEMP%`, `C:\Windows\Temp`, *Delivery Optimization*, *INetCache*) y hace `ipconfig /flushdns`. | De vez en cuando, o antes de jugar. |
+### 🏠 Inicio
 
-El cuadro de texto de abajo muestra el resultado: procesos optimizados, RAM
-disponible antes/después y cuánto se ganó.
+![Inicio](docs/inicio.png)
+
+| Zona | Qué hace |
+|---|---|
+| **Mejorar el rendimiento** | Vacía la *working set* de todos los procesos y fuerza el GC. **No cierra ninguna app.** Muestra los procesos optimizados y la RAM ganada. |
+| **Limpieza rápida** | Borra archivos temporales (`%TEMP%`, `C:\Windows\Temp`, *Delivery Optimization*, *INetCache*) y hace `ipconfig /flushdns`. |
+| **Tarjetas de estado** | Aplicaciones en curso, disco local (C:), memoria libre y **última limpieza** (hora). |
+| **Limpieza profunda** | Abre directamente la pantalla de escaneo profundo. |
 
 ### 📋 Procesos
+
 Lista todos los procesos ordenados por consumo de RAM, con icono, PID, consumo y estado.
 
 | Botón | Qué hace |
@@ -44,18 +47,43 @@ Lista todos los procesos ordenados por consumo de RAM, con icono, PID, consumo y
 | **Ubicación** | Abre la carpeta donde está el `.exe` del proceso seleccionado. |
 
 - Escribe en el cuadro de **búsqueda** para filtrar por nombre.
+- Con **Agrupar** activado, cada programa es una fila con todos sus PIDs y su RAM total.
+- Con **Auto 2s** la lista se refresca sola cada dos segundos.
 - **No se pueden cerrar** los procesos del sistema (`csrss`, `lsass`, `dwm`,
   `svchost`, `explorer`, *Memory Compression*…): están en una lista protegida.
-- Si un programa "no responde", selecciónalo y pulsa **Terminar**.
 
 ### 🧹 Limpieza
-Limpieza profunda de aplicaciones instaladas usando las reglas de **Winapp2.ini**
-(miles de reglas de Chrome, Steam, Epic, Spotify, juegos, etc.).
 
-1. **Analizar** → mide el espacio que ocupa cada aplicación. (Al abrir la pestaña
-   se analiza solo.)
-2. Marca las que quieras en la lista.
-3. **Limpiar** → confirma y borra.
+![Pestaña Limpieza](docs/limpieza.png)
+
+Lista las **aplicaciones instaladas** con el espacio que ocupan sus datos de caché
+(reglas de **Winapp2.ini**, embebidas dentro del propio `.exe`: Chrome, Steam, Epic,
+Spotify, juegos, etc.). Al abrir la pestaña se analiza sola y muestra el total
+`152 apps instaladas, 163,2 MB de datos acumulados.`
+
+El único botón es **Limpieza profunda**, que abre la pantalla de análisis estilo
+*PC Manager*:
+
+![Limpieza profunda](docs/limpieza-profunda.png)
+
+1. **Examinando** → barra de progreso, `Examinando: <elemento>` y los cinco grupos
+   pasan de *Esperando a examinar…* a *Descubierto X*.
+2. Al terminar: `Se detectaron X elementos para limpiar` y el botón cambia a **Limpiar**
+   (mientras tanto es **Cancelar** y detiene el análisis).
+3. **Limpiar** → pide confirmación → borra y muestra `Se liberaron X` / `N archivos
+   eliminados`, con cada grupo en verde (*Liberado X*) o amarillo
+   (*No liberado (en uso)* si el archivo estaba bloqueado).
+4. **← Volver** regresa a la pestaña anterior; la hora de la limpieza aparece en Inicio.
+
+**Grupos analizados:**
+
+| Grupo | Qué incluye |
+|---|---|
+| Elementos recomendados | `%TEMP%`, `C:\Windows\Temp` y la carpeta Temp de cada usuario. |
+| Otros elementos del sistema | *Windows Update*, *INetCache*, *Delivery Optimization*, informes WER. |
+| Otros elementos de la aplicacion | Cachés de las apps detectadas con Winapp2.ini. |
+| Seguimientos de uso del equipo | Elementos recientes de todos los usuarios. |
+| Papelera de reciclaje | Todo lo que hay en la papelera de todos los discos. |
 
 > La base de reglas viaja **dentro del propio `.exe`**, así que funciona en
 > cualquier PC sin archivos sueltos.
@@ -64,12 +92,12 @@ Limpieza profunda de aplicaciones instaladas usando las reglas de **Winapp2.ini*
 
 ## Preguntas frecuentes
 
-**¿Es seguro?** Sí: no borra nada que no sean temporales o datos de caché marcados
-por Winapp2.ini, y nunca cierra procesos del sistema. Se recomienda igualmente
-cerrar el programa después de usarlo.
+**¿Es seguro?** Sí: no borra nada que no sean temporales, datos de caché marcados
+por Winapp2.ini o la papelera, y nunca cierra procesos del sistema. Todo lo que
+elimina se pide a confirmación antes.
 
-**¿Cierra mis programas?** No. La *Boost* solo libera memoria. Solo se cierra lo que
-tú marques y confirmes en la pestaña *Procesos*.
+**¿Cierra mis programas?** No. La mejora de rendimiento solo libera memoria. Solo se
+cierra lo que tú marques y confirmes en la pestaña *Procesos*.
 
 **¿No arranca / se cierra solo?** Revisa el log de errores en
 `%LOCALAPPDATA%\LunaOptimizer\errores.log` y ábrelo como incidencia en GitHub.

@@ -17,6 +17,9 @@ public partial class ProcessesView : UserControl
 
     private async Task RefreshAsync()
     {
+        // El evento Checked de "Agrupar" se dispara durante InitializeComponent,
+        // antes de que existan las columnas del DataGrid: en ese caso no hacemos nada.
+        if (ColPids is null || ColName is null || ColRam is null) return;
         var filter = TxtFilter?.Text ?? "";
         bool grouped = ChkGroup?.IsChecked != false;
         ColPids.Visibility = grouped ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;

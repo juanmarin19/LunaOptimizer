@@ -5,7 +5,7 @@
         Width="456" Height="664"
         MinWidth="456" MinHeight="664" MaxWidth="456" MaxHeight="664"
         ResizeMode="CanMinimize" WindowStyle="None"
-        WindowStartupLocation="CenterScreen" Background="#1E1E2E" Foreground="White">
+        WindowStartupLocation="CenterScreen" Background="#1A1A1A" Foreground="White">
     <WindowChrome.WindowChrome>
         <!-- CaptionHeight=0: si es 32 toda la banda superior es HTCAPTION y
              los botones de minimizar/cerrar reciben el drag en vez del click -->
@@ -14,31 +14,32 @@
                       UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
     <Window.Resources>
-        <!-- Item de navegacion lateral tipo PC Manager: icono + etiqueta -->
+        <!-- Item de navegacion lateral estilo PC Manager: icono + etiqueta -->
         <Style x:Key="NavBtn" TargetType="RadioButton">
-            <Setter Property="Foreground" Value="#D0D4E8"/>
+            <Setter Property="Foreground" Value="#B9B9B9"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Margin" Value="6,2"/>
+            <Setter Property="Margin" Value="6,3"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Focusable" Value="False"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="10" Padding="4,7">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="4,8">
                             <StackPanel>
                                 <TextBlock Text="{TemplateBinding Tag}" FontSize="17" HorizontalAlignment="Center"
                                            TextElement.Foreground="{TemplateBinding Foreground}"/>
-                                <TextBlock Text="{TemplateBinding Content}" FontSize="10" HorizontalAlignment="Center"
+                                <TextBlock Text="{TemplateBinding Content}" FontSize="9" HorizontalAlignment="Center"
                                            Margin="0,3,0,0" TextElement.Foreground="{TemplateBinding Foreground}"/>
                             </StackPanel>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#2A2B3D"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#1F1F1F"/>
+                                <Setter Property="Foreground" Value="White"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#CBA6F7"/>
-                                <Setter Property="Foreground" Value="#11111B"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#262626"/>
+                                <Setter Property="Foreground" Value="#4CC2FF"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -50,7 +51,7 @@
             <Setter Property="Width" Value="44"/>
             <Setter Property="Height" Value="32"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#D0D4E8"/>
+            <Setter Property="Foreground" Value="#B9B9B9"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -63,7 +64,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#3B3D52"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#333333"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -79,7 +80,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#E64553"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#E81123"/>
                                 <Setter Property="Foreground" Value="White"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -88,7 +89,7 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Border BorderBrush="#313244" BorderThickness="1" Background="#1E1E2E">
+    <Border BorderBrush="#333333" BorderThickness="1" Background="#1A1A1A">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="32"/>
@@ -96,14 +97,23 @@
             </Grid.RowDefinitions>
 
             <!-- Barra de titulo propia: client total = 456x664 como PC Manager -->
-            <Grid Grid.Row="0" Background="#11111B">
+            <Grid Grid.Row="0" Background="#0F0F0F">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0" Background="Transparent" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-                    <TextBlock Text="LunaOptimizer" FontSize="11" Foreground="#D0D4E8"
-                               VerticalAlignment="Center" Margin="12,0,0,0"/>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                        <Border Width="15" Height="15" CornerRadius="4" Margin="0,0,8,0">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#4CC2FF" Offset="0"/>
+                                    <GradientStop Color="#2E7BFF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <TextBlock Text="LunaOptimizer" FontSize="11" Foreground="#B9B9B9" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </Border>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Style="{StaticResource CaptionBtn}" Content="&#x2500;" Click="BtnMin_Click" ToolTip="Minimizar"/>
@@ -118,16 +128,22 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Rail lateral -->
-                <Border Grid.Column="0" Background="#11111B">
+                <Border Grid.Column="0" Background="#0F0F0F">
                     <DockPanel LastChildFill="False">
-                        <Border DockPanel.Dock="Top" Margin="0,10,0,8">
-                            <Border Background="#CBA6F7" CornerRadius="10" Width="36" Height="36">
-                                <TextBlock Text="L" FontSize="20" FontWeight="Bold" Foreground="#11111B"
+                        <Border DockPanel.Dock="Top" Margin="0,12,0,10">
+                            <Border Width="36" Height="36" CornerRadius="10" HorizontalAlignment="Center">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#4CC2FF" Offset="0"/>
+                                        <GradientStop Color="#2E7BFF" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <TextBlock Text="L" FontSize="20" FontWeight="Bold" Foreground="#06202E"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                         </Border>
-                        <RadioButton x:Name="NavBoost" Style="{StaticResource NavBtn}" Tag="&#x26A1;" Content="Boost"
-                                     DockPanel.Dock="Top" IsChecked="True" Checked="NavBoost_Checked"/>
+                        <RadioButton x:Name="NavHome" Style="{StaticResource NavBtn}" Tag="&#x1F3E0;" Content="Inicio"
+                                     DockPanel.Dock="Top" IsChecked="True" Checked="NavHome_Checked"/>
                         <RadioButton x:Name="NavProc" Style="{StaticResource NavBtn}" Tag="&#x1F4CB;" Content="Procesos"
                                      DockPanel.Dock="Top" Checked="NavProc_Checked"/>
                         <RadioButton x:Name="NavClean" Style="{StaticResource NavBtn}" Tag="&#x1F9F9;" Content="Limpieza"
@@ -143,17 +159,15 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Background="#2A2B3D" CornerRadius="12" Padding="14,10" Margin="10,10,10,8">
-                        <StackPanel>
-                            <TextBlock Text="Estado del equipo" FontSize="15" FontWeight="Bold" Foreground="White"/>
-                            <TextBlock x:Name="TxtMem" Text="RAM: ..." FontSize="11" Foreground="#D0D4E8" Margin="0,3,0,0"/>
-                        </StackPanel>
-                    </Border>
+                    <StackPanel Grid.Row="0" Margin="12,12,12,8">
+                        <TextBlock x:Name="TxtTitle" Text="Inicio" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock x:Name="TxtSub" Text="RAM: ..." FontSize="11" Foreground="#B9B9B9" Margin="0,3,0,0"/>
+                    </StackPanel>
 
-                    <ContentControl x:Name="Host" Grid.Row="1" Margin="10,0,10,0" Focusable="False"/>
+                    <ContentControl x:Name="Host" Grid.Row="1" Margin="12,0,12,0" Focusable="False"/>
 
-                    <Border Grid.Row="2" Background="#11111B" Padding="12,7" Margin="10,6,10,8" CornerRadius="8">
-                        <TextBlock x:Name="TxtStatus" Text="Listo." FontSize="11" Foreground="#D0D4E8"/>
+                    <Border Grid.Row="2" Background="#0F0F0F" Padding="12,7" Margin="12,6,12,10" CornerRadius="8">
+                        <TextBlock x:Name="TxtStatus" Text="Listo." FontSize="11" Foreground="#B9B9B9"/>
                     </Border>
                 </Grid>
             </Grid>

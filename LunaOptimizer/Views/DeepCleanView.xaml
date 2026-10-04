@@ -1,0 +1,108 @@
+<UserControl x:Class="LunaOptimizer.Views.DeepCleanView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Background="Transparent" Margin="0,4,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+            <Button x:Name="BtnBack" Content="&#x2190; Volver" Click="BtnBack_Click"
+                    Padding="10,4" FontSize="12" Margin="0" Background="Transparent"/>
+        </StackPanel>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Width="44" Height="44" CornerRadius="10" Background="#1C3542" VerticalAlignment="Top">
+                    <TextBlock Text="&#x1F5D1;&#xFE0F;" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel Grid.Column="1" Margin="11,0,9,0">
+                    <TextBlock x:Name="TxtHead" Text="Se detectaron 0 elementos para limpiar"
+                               FontSize="13" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="TxtHeadSub" Text="Preparando el analisis..."
+                               FontSize="11" Foreground="#B9B9B9" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                    <ProgressBar x:Name="BarScan" Height="4" Margin="0,9,0,0" Maximum="100" Value="0"
+                                 Foreground="#4CC2FF" Background="#333333" BorderThickness="0"/>
+                </StackPanel>
+                <Button Grid.Column="2" x:Name="BtnAction" Content="Cancelar" Click="BtnAction_Click"
+                        VerticalAlignment="Top" Padding="12,7" FontSize="12" Margin="0"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource Card}">
+            <StackPanel>
+                <Border x:Name="Row0" BorderBrush="#2D2D2D" BorderThickness="0,0,0,1" Padding="0,11">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Elementos recomendados" FontSize="12.5" Foreground="#E8E8E8"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="1" x:Name="St0" Text="Esperando a examinar..." FontSize="11.5"
+                                   Foreground="#B9B9B9" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                    </Grid>
+                </Border>
+                <Border x:Name="Row1" BorderBrush="#2D2D2D" BorderThickness="0,0,0,1" Padding="0,11">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Otros elementos del sistema" FontSize="12.5" Foreground="#E8E8E8"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="1" x:Name="St1" Text="Esperando a examinar..." FontSize="11.5"
+                                   Foreground="#B9B9B9" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                    </Grid>
+                </Border>
+                <Border x:Name="Row2" BorderBrush="#2D2D2D" BorderThickness="0,0,0,1" Padding="0,11">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Otros elementos de la aplicacion" FontSize="12.5" Foreground="#E8E8E8"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="1" x:Name="St2" Text="Esperando a examinar..." FontSize="11.5"
+                                   Foreground="#B9B9B9" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                    </Grid>
+                </Border>
+                <Border x:Name="Row3" BorderBrush="#2D2D2D" BorderThickness="0,0,0,1" Padding="0,11">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Seguimientos de uso del equipo" FontSize="12.5" Foreground="#E8E8E8"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="1" x:Name="St3" Text="Esperando a examinar..." FontSize="11.5"
+                                   Foreground="#B9B9B9" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                    </Grid>
+                </Border>
+                <Border x:Name="Row4" Padding="0,11">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Papelera de reciclaje" FontSize="12.5" Foreground="#E8E8E8"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="1" x:Name="St4" Text="Esperando a examinar..." FontSize="11.5"
+                                   Foreground="#B9B9B9" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <TextBlock Grid.Row="3" x:Name="TxtStatus" Text="" FontSize="11" Foreground="#B9B9B9"
+                   Margin="2,8,0,0" TextWrapping="Wrap"/>
+    </Grid>
+</UserControl>
