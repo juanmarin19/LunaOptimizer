@@ -73,8 +73,7 @@ public static class ProcessService
 
     /// Procesos que tienen al menos una ventana visible: son las
     /// "aplicaciones" que el usuario puede ver y cerrar con seguridad.
-    public static HashSet<int> VisibleWindowPids()
-    {
+    public static HashSet<int> VisibleWindowPids()    {
         var set = new HashSet<int>();
         try
         {
@@ -94,6 +93,12 @@ public static class ProcessService
         catch { }
         return set;
     }
+
+    /// Apps empaquetadas (Microsoft Store): PC Manager las lista aunque ahora
+    /// no tengan ventana visible (Photos, Xbox...). Su exe vive en WindowsApps.
+    private static bool IsPackagedApp(string path)
+        => !string.IsNullOrEmpty(path) &&
+           path.Contains("\\WindowsApps\\", StringComparison.OrdinalIgnoreCase);
 
     public static List<ProcessInfo> GetProcesses(string filter = "", bool onlySafe = true)
     {
@@ -118,7 +123,8 @@ public static class ProcessService
             }
             // Solo lo que se puede ver y cerrar: ni del sistema, ni de fondo.
             bool canKill = !ProtectedNames.Contains(name) && p.Id != Environment.ProcessId;
-            if (onlySafe && (!canKill || !winPids!.Contains(p.Id) || NotAnApp(name)))
+            if (onlySafe &&
+                (!canKill || !(winPids!.Contains(p.Id) || IsPackagedApp(path)) || NotAnApp(name)))
             { try { p.Dispose(); } catch { } continue; }
             if (!string.IsNullOrWhiteSpace(filter) &&
                 !name.Contains(filter, StringComparison.OrdinalIgnoreCase))
@@ -147,7 +153,24 @@ public static class ProcessService
 
     public static List<ProcessGroup> GetGroups(string filter = "", bool onlySafe = true)
     {
-        var all = GetProcesses(filter, onlySafe);
+        // En modo seguro: primero descubre QUE programas cuentan (al menos un
+        // proceso con ventana o app empaquetada) y luego agrupa TODOS los
+        // procesos de esos nombres, como hace PC Manager (Brave 2.3 GB = todos
+        // los brave.exe, no solo el que tiene ventana).
+        var all = GetProcesses(filter, onlySafe: false);
+        if (onlySafe)
+        {
+            var winPids = VisibleWindowPids();
+            var appNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var p in all)
+            {
+                if (ProtectedNames.Contains(p.Name) || NotAnApp(p.Name)) continue;
+                if (p.Pid != Environment.ProcessId &&
+                    (winPids.Contains(p.Pid) || IsPackagedApp(p.Path)))
+                    appNames.Add(p.Name);
+            }
+            all = all.Where(p => appNames.Contains(p.Name)).ToList();
+        }
         return all.GroupBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
             .Select(g =>
             {

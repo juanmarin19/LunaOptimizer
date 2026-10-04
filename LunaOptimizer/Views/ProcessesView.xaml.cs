@@ -20,31 +20,39 @@ public partial class ProcessesView : UserControl
         // El evento Checked de "Agrupar" se dispara durante InitializeComponent,
         // antes de que existan las columnas del DataGrid: en ese caso no hacemos nada.
         if (ColPids is null || ColName is null || ColRam is null) return;
-        var filter = TxtFilter?.Text ?? "";
-        bool grouped = ChkGroup?.IsChecked != false;
-        // Por defecto solo apps con ventana visible y seguras de cerrar.
-        bool onlySafe = !(ChkTodos?.IsChecked == true);
-        ColPids.Visibility = grouped ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
-        if (grouped)
+        try
         {
-            ColName.Header = "Programa";
-            ColName.Binding = new System.Windows.Data.Binding("Display");
-            ColRam.Header = "RAM MB";
-            ColRam.Binding = new System.Windows.Data.Binding("TotalRamMB");
-            var groups = await Task.Run(() => ProcessService.GetGroups(filter, onlySafe));
-            Grid.ItemsSource = groups;
-            int totalProcs = groups.Sum(g => g.Count);
-            TxtCount.Text = $"{groups.Count} apps ({totalProcs} procesos)";
+            var filter = TxtFilter?.Text ?? "";
+            bool grouped = ChkGroup?.IsChecked != false;
+            // Por defecto solo apps con ventana visible y seguras de cerrar.
+            bool onlySafe = !(ChkTodos?.IsChecked == true);
+            ColPids.Visibility = grouped ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            if (grouped)
+            {
+                ColName.Header = "Programa";
+                ColName.Binding = new System.Windows.Data.Binding("Display");
+                ColRam.Header = "RAM MB";
+                ColRam.Binding = new System.Windows.Data.Binding("TotalRamMB");
+                var groups = await Task.Run(() => ProcessService.GetGroups(filter, onlySafe));
+                Grid.ItemsSource = groups;
+                int totalProcs = groups.Sum(g => g.Count);
+                TxtCount.Text = $"{groups.Count} apps ({totalProcs} procesos)";
+            }
+            else
+            {
+                ColName.Header = "Nombre";
+                ColName.Binding = new System.Windows.Data.Binding("Name");
+                ColRam.Header = "RAM MB";
+                ColRam.Binding = new System.Windows.Data.Binding("RamMB");
+                var items = await Task.Run(() => ProcessService.GetProcesses(filter, onlySafe));
+                Grid.ItemsSource = items;
+                TxtCount.Text = $"{items.Count} procesos";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            ColName.Header = "Nombre";
-            ColName.Binding = new System.Windows.Data.Binding("Name");
-            ColRam.Header = "RAM MB";
-            ColRam.Binding = new System.Windows.Data.Binding("RamMB");
-            var items = await Task.Run(() => ProcessService.GetProcesses(filter, onlySafe));
-            Grid.ItemsSource = items;
-            TxtCount.Text = $"{items.Count} procesos";
+            // Nunca dejar la lista vacia sin decir por que.
+            TxtCount.Text = "Error: " + ex.Message;
         }
     }
 
@@ -53,10 +61,13 @@ public partial class ProcessesView : UserControl
     private void TxtFilter_TextChanged(object sender, TextChangedEventArgs e) => Refresh();
     private void BtnRefresh_Click(object sender, RoutedEventArgs e) => Refresh();
 
-    private void BtnKill_Click(object sender, RoutedEventArgs e)
+    private void BtnKillRow_Click(object sender, RoutedEventArgs e)
+        => KillTarget((sender as FrameworkElement)?.DataContext);
+
+    private void KillTarget(object? target)
     {
         // Modo agrupado: mata todos los PIDs del grupo
-        if (Grid.SelectedItem is Models.ProcessGroup grp)
+        if (target is Models.ProcessGroup grp)
         {
             if (!grp.CanKill)
             {
@@ -72,7 +83,7 @@ public partial class ProcessesView : UserControl
             Refresh();
             return;
         }
-        if (Grid.SelectedItem is not Models.ProcessInfo pi)
+        if (target is not Models.ProcessInfo pi)
         {
             MessageBox.Show("Selecciona un proceso primero.");
             return;
@@ -83,20 +94,12 @@ public partial class ProcessesView : UserControl
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
-            var r2 = MessageBox.Show($"Terminar {pi.Name} ({pi.Pid})?", "Confirmar",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (r2 != MessageBoxResult.Yes) return;
+        var r2 = MessageBox.Show($"Terminar {pi.Name} ({pi.Pid})?", "Confirmar",
+            MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        if (r2 != MessageBoxResult.Yes) return;
         var (ok, msg) = ProcessService.KillProcess(pi.Pid);
         MessageBox.Show(msg);
         Refresh();
-    }
-
-    private void Grid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (Grid.SelectedItem is Models.ProcessGroup grp)
-            BtnKill.IsEnabled = grp.CanKill;
-        else if (Grid.SelectedItem is Models.ProcessInfo pi)
-            BtnKill.IsEnabled = pi.CanKill;
     }
 
     private void BtnLocation_Click(object sender, RoutedEventArgs e)

@@ -19,7 +19,6 @@
             <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBox x:Name="TxtFilter" Width="104" ToolTip="Filtrar por nombre" TextChanged="TxtFilter_TextChanged"/>
                 <Button x:Name="BtnRefresh" Content="Actualizar" Style="{StaticResource CompactBtn}" Click="BtnRefresh_Click"/>
-                <Button x:Name="BtnKill" Content="Terminar" Style="{StaticResource CompactBtn}" Click="BtnKill_Click" Background="#FF7B7B" Foreground="#0B1B24"/>
                 <Button x:Name="BtnLocation" Content="Ubicacion" Style="{StaticResource CompactBtn}" Click="BtnLocation_Click"/>
                 <CheckBox x:Name="ChkGroup" Content="Agrupar" Foreground="White" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" IsChecked="True" Checked="ChkGroup_Changed" Unchecked="ChkGroup_Changed" ToolTip="Una fila por programa (brave x8)"/>
                 <CheckBox x:Name="ChkAuto" Content="Auto 2s" Foreground="White" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" Checked="ChkAuto_Checked" Unchecked="ChkAuto_Unchecked"/>
@@ -33,8 +32,7 @@
             <DataGrid x:Name="Grid" AutoGenerateColumns="False" IsReadOnly="True"
                       Background="Transparent" Foreground="White"
                       HeadersVisibility="Column" GridLinesVisibility="None" BorderThickness="0" FontSize="12"
-                      ScrollViewer.HorizontalScrollBarVisibility="Hidden"
-                      SelectionChanged="Grid_SelectionChanged">
+                      ScrollViewer.HorizontalScrollBarVisibility="Hidden">
                 <DataGrid.Columns>
                     <DataGridTemplateColumn x:Name="ColIcon" Header="" Width="30">
                         <DataGridTemplateColumn.CellTemplate>
@@ -53,7 +51,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn x:Name="ColPids" Header="PIDs" Binding="{Binding Pids}" Width="80">
+                    <DataGridTextColumn x:Name="ColPids" Header="PIDs" Binding="{Binding Pids}" Width="56">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="#B9B9B9"/>
@@ -62,7 +60,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn x:Name="ColRam" Header="RAM MB" Binding="{Binding TotalRamMB}" Width="72">
+                    <DataGridTextColumn x:Name="ColRam" Header="RAM MB" Binding="{Binding TotalRamMB}" Width="62">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="#6CCB7F"/>
@@ -71,15 +69,18 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="Estado" Binding="{Binding Status}" Width="68">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="White"/>
-                                <Setter Property="Padding" Value="4,4"/>
-                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                    <DataGridTemplateColumn Width="78">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="Finalizar" Click="BtnKillRow_Click"
+                                        Style="{StaticResource CompactBtn}"
+                                        Background="#FF7B7B" Foreground="#0B1B24"
+                                        FontWeight="SemiBold" Padding="7,3" FontSize="11"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        ToolTip="Terminar este programa"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>

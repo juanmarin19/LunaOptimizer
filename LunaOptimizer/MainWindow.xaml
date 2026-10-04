@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="LunaOptimizer"
+        Icon="LunaOptimizer.ico"
         Width="456" Height="664"
         MinWidth="456" MinHeight="664" MaxWidth="456" MaxHeight="664"
         ResizeMode="CanMinimize" WindowStyle="None"
@@ -104,14 +105,7 @@
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0" Background="Transparent" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                        <Border Width="15" Height="15" CornerRadius="4" Margin="0,0,8,0">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#4CC2FF" Offset="0"/>
-                                    <GradientStop Color="#2E7BFF" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
+                        <Image Source="LunaOptimizer.ico" Width="15" Height="15" Margin="0,0,8,0" Stretch="Uniform"/>
                         <TextBlock Text="LunaOptimizer" FontSize="11" Foreground="#B9B9B9" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
@@ -131,15 +125,8 @@
                 <Border Grid.Column="0" Background="#0F0F0F">
                     <DockPanel LastChildFill="False">
                         <Border DockPanel.Dock="Top" Margin="0,12,0,10">
-                            <Border Width="36" Height="36" CornerRadius="10" HorizontalAlignment="Center">
-                                <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#4CC2FF" Offset="0"/>
-                                        <GradientStop Color="#2E7BFF" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Border.Background>
-                                <TextBlock Text="L" FontSize="20" FontWeight="Bold" Foreground="#06202E"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border Width="36" Height="36" CornerRadius="10" HorizontalAlignment="Center" Background="#0F0F0F">
+                                <Image Source="LunaOptimizer.ico" Width="36" Height="36" Stretch="Uniform"/>
                             </Border>
                         </Border>
                         <RadioButton x:Name="NavHome" Style="{StaticResource NavBtn}" Tag="&#x1F3E0;" Content="Inicio"
