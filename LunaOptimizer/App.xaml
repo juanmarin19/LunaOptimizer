@@ -4,34 +4,25 @@
              xmlns:local="clr-namespace:LunaOptimizer"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <!-- Paleta estilo Microsoft PC Manager (tema oscuro Fluent) -->
-        <Color x:Key="C_Bg">#1A1A1A</Color>
-        <Color x:Key="C_Panel">#2D2D2D</Color>
-        <Color x:Key="C_Card">#242424</Color>
-        <Color x:Key="C_Text">#FFFFFF</Color>
-        <Color x:Key="C_Sub">#B9B9B9</Color>
-        <Color x:Key="C_Accent">#4CC2FF</Color>
-        <Color x:Key="C_Blue">#4CC2FF</Color>
-        <Color x:Key="C_Green">#6CCB7F</Color>
-        <Color x:Key="C_Red">#FF7B7B</Color>
-        <Color x:Key="C_Yellow">#F5C76A</Color>
-        <SolidColorBrush x:Key="B_Bg" Color="{StaticResource C_Bg}"/>
-        <SolidColorBrush x:Key="B_Panel" Color="{StaticResource C_Panel}"/>
-        <SolidColorBrush x:Key="B_Card" Color="{StaticResource C_Card}"/>
-        <SolidColorBrush x:Key="B_Text" Color="{StaticResource C_Text}"/>
-        <SolidColorBrush x:Key="B_Sub" Color="{StaticResource C_Sub}"/>
-        <SolidColorBrush x:Key="B_Accent" Color="{StaticResource C_Accent}"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Diccionario de tema (Dark por defecto; ThemeManager lo cambia a Light) -->
+                <ResourceDictionary Source="Theme/Dark.xaml"/>
+                <!-- Iconos vectoriales (Color/Stroke van en cada Path) -->
+                <ResourceDictionary Source="Theme/Icons.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
         <!-- Tarjeta redondeada (estilo PC Manager) -->
         <Style x:Key="Card" TargetType="Border">
-            <Setter Property="Background" Value="#242424"/>
+            <Setter Property="Background" Value="{DynamicResource B_Card}"/>
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="14"/>
             <Setter Property="Margin" Value="0,0,0,10"/>
         </Style>
-        <!-- Boton primario: azul Fluent con texto oscuro -->
+        <!-- Boton primario: azul Fluent con texto sobre acento -->
         <Style x:Key="PrimaryBtn" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="#4CC2FF"/>
-            <Setter Property="Foreground" Value="#0B1B24"/>
+            <Setter Property="Background" Value="{DynamicResource B_Accent}"/>
+            <Setter Property="Foreground" Value="{DynamicResource B_OnAccent}"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Padding" Value="16,9"/>
@@ -43,21 +34,21 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#67CDFF"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B_AccentHover}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#33B5F8"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B_AccentPressed}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="Bd" Property="Background" Value="#3A3A3A"/>
-                                <Setter Property="Foreground" Value="#7A7A7A"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B_ButtonDisabled}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource B_DisabledText}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-        <!-- Scrollbars oscuras (Windows trae las claras y rompen el tema) -->
+        <!-- Scrollbars (Windows trae las claras y rompen el tema) -->
         <Style TargetType="ScrollBar">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Width" Value="8"/>
@@ -71,7 +62,7 @@
                                     <Thumb>
                                         <Thumb.Template>
                                             <ControlTemplate TargetType="Thumb">
-                                                <Border Background="#5A5A5A" CornerRadius="4" Margin="1"/>
+                                                <Border Background="{DynamicResource B_Thumb}" CornerRadius="4" Margin="1"/>
                                             </ControlTemplate>
                                         </Thumb.Template>
                                     </Thumb>
@@ -110,8 +101,8 @@
             </Setter>
         </Style>
         <Style TargetType="Button">
-            <Setter Property="Background" Value="#333333"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource B_Button}"/>
+            <Setter Property="Foreground" Value="{DynamicResource B_Text}"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Padding" Value="14,8"/>
@@ -126,15 +117,15 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#404040"/>
+                                <Setter Property="Background" Value="{DynamicResource B_ButtonHover}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background" Value="#4CC2FF"/>
-                                <Setter Property="Foreground" Value="#0B1B24"/>
+                                <Setter Property="Background" Value="{DynamicResource B_Accent}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource B_OnAccent}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Background" Value="#2A2A2A"/>
-                                <Setter Property="Foreground" Value="#6E6E6E"/>
+                                <Setter Property="Background" Value="{DynamicResource B_ButtonDisabled}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource B_DisabledText}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -142,25 +133,25 @@
             </Setter>
         </Style>
         <Style TargetType="TextBox">
-            <Setter Property="Background" Value="#333333"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource B_Input}"/>
+            <Setter Property="Foreground" Value="{DynamicResource B_Text}"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="CaretBrush" Value="White"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource B_Caret}"/>
         </Style>
         <Style TargetType="CheckBox">
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Foreground" Value="{DynamicResource B_Text}"/>
             <Setter Property="FontSize" Value="13"/>
         </Style>
         <Style TargetType="TabControl">
-            <Setter Property="Background" Value="#11111B"/>
+            <Setter Property="Background" Value="{DynamicResource B_Tab}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="4"/>
         </Style>
         <Style TargetType="TabItem" x:Key="LunaTab">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Background" Value="#454545"/>
+            <Setter Property="Foreground" Value="{DynamicResource B_Text}"/>
+            <Setter Property="Background" Value="{DynamicResource B_Button}"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Padding" Value="18,10"/>
@@ -176,55 +167,55 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#4CC2FF"/>
-                                <Setter Property="Foreground" Value="#11111B"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B_Accent}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource B_OnAccent}"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#585B70"/>
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B_TabHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource B_Text}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-        <!-- Cabeceras y celdas DataGrid en tema oscuro -->
+        <!-- Cabeceras y celdas DataGrid -->
         <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#2D2D2D"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource B_Panel}"/>
+            <Setter Property="Foreground" Value="{DynamicResource B_Text}"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Padding" Value="8,6"/>
             <Setter Property="BorderThickness" Value="0"/>
         </Style>
         <Style TargetType="DataGridCell">
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Foreground" Value="{DynamicResource B_Text}"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#4CC2FF"/>
-                    <Setter Property="Foreground" Value="#11111B"/>
+                    <Setter Property="Background" Value="{DynamicResource B_Accent}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource B_OnAccent}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
         <Style TargetType="DataGridRow">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Background" Value="#1A1A1A"/>
+            <Setter Property="Foreground" Value="{DynamicResource B_Text}"/>
+            <Setter Property="Background" Value="{DynamicResource B_Bg}"/>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#4CC2FF"/>
-                    <Setter Property="Foreground" Value="#11111B"/>
+                    <Setter Property="Background" Value="{DynamicResource B_Accent}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource B_OnAccent}"/>
                 </Trigger>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#2D2D2D"/>
+                    <Setter Property="Background" Value="{DynamicResource B_Panel}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
         <!-- Cabecera ListView/GridView -->
         <Style TargetType="GridViewColumnHeader">
-            <Setter Property="Background" Value="#2D2D2D"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource B_Panel}"/>
+            <Setter Property="Foreground" Value="{DynamicResource B_Text}"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Padding" Value="8,6"/>
@@ -240,17 +231,18 @@
             </Setter>
         </Style>
         <Style TargetType="ListViewItem">
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Foreground" Value="{DynamicResource B_Text}"/>
             <Setter Property="Background" Value="Transparent"/>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#4CC2FF"/>
-                    <Setter Property="Foreground" Value="#11111B"/>
+                    <Setter Property="Background" Value="{DynamicResource B_Accent}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource B_OnAccent}"/>
                 </Trigger>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#2D2D2D"/>
+                    <Setter Property="Background" Value="{DynamicResource B_Panel}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

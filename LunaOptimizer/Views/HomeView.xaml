@@ -9,7 +9,7 @@
             <Setter Property="Padding" Value="12,10"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#2C2C2C"/>
+                    <Setter Property="Background" Value="{DynamicResource B_HoverTile}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -27,15 +27,19 @@
                 <StackPanel>
                     <Grid>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="&#x26A1;" FontSize="15" VerticalAlignment="Center" Margin="0,0,7,0"/>
-                            <TextBlock Text="Mejora de rendimiento" FontSize="15" FontWeight="Bold" Foreground="White"
-                                       VerticalAlignment="Center"/>
+                            <Path Data="{StaticResource I.Zap}" Width="15" Height="15" Stretch="Uniform"
+                                  Margin="0,0,7,0" VerticalAlignment="Center"
+                                  Stroke="{DynamicResource B_Accent}" StrokeThickness="1.7"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                            <TextBlock Text="Mejora de rendimiento" FontSize="15" FontWeight="Bold"
+                                       Foreground="{DynamicResource B_Text}" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock x:Name="TxtRamTotal" Text="RAM" FontSize="11" Foreground="#4CC2FF"
+                        <TextBlock x:Name="TxtRamTotal" Text="RAM" FontSize="11"
+                                   Foreground="{DynamicResource B_Accent}"
                                    HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     </Grid>
                     <TextBlock Text="Libera recursos para ayudar a tu PC a tener un rendimiento rapido."
-                               FontSize="11.5" Foreground="#B9B9B9" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                               FontSize="11.5" Foreground="{DynamicResource B_Sub}" Margin="0,5,0,0" TextWrapping="Wrap"/>
 
                     <!-- Dos indicadores -->
                     <Grid Margin="0,12,0,0">
@@ -50,10 +54,13 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Width="3" CornerRadius="2" Background="#4CC2FF" VerticalAlignment="Stretch" Margin="0,1,8,1"/>
+                                <Border Grid.Column="0" Width="3" CornerRadius="2" Background="{DynamicResource B_Accent}"
+                                        VerticalAlignment="Stretch" Margin="0,1,8,1"/>
                                 <StackPanel Grid.Column="1">
-                                    <TextBlock x:Name="TxtMemPct" Text="—" FontSize="19" FontWeight="Bold" Foreground="White"/>
-                                    <TextBlock Text="Uso de memoria" FontSize="10.5" Foreground="#B9B9B9" Margin="0,3,0,0"/>
+                                    <TextBlock x:Name="TxtMemPct" Text="—" FontSize="19" FontWeight="Bold"
+                                               Foreground="{DynamicResource B_Text}"/>
+                                    <TextBlock Text="Uso de memoria" FontSize="10.5" Foreground="{DynamicResource B_Sub}"
+                                               Margin="0,3,0,0"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -64,20 +71,36 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Width="3" CornerRadius="2" Background="#4CC2FF" VerticalAlignment="Stretch" Margin="0,1,8,1"/>
+                                <Border Grid.Column="0" Width="3" CornerRadius="2" Background="{DynamicResource B_Accent}"
+                                        VerticalAlignment="Stretch" Margin="0,1,8,1"/>
                                 <StackPanel Grid.Column="1">
-                                    <TextBlock x:Name="TxtTempVal" Text="..." FontSize="19" FontWeight="Bold" Foreground="White"/>
-                                    <TextBlock Text="Archivos temporales" FontSize="10.5" Foreground="#B9B9B9" Margin="0,3,0,0"/>
+                                    <TextBlock x:Name="TxtTempVal" Text="..." FontSize="19" FontWeight="Bold"
+                                               Foreground="{DynamicResource B_Text}"/>
+                                    <TextBlock Text="Archivos temporales" FontSize="10.5" Foreground="{DynamicResource B_Sub}"
+                                               Margin="0,3,0,0"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
                     </Grid>
 
+                    <!-- Historial de uso de RAM (ultimos 60 s) -->
+                    <Border x:Name="SparkBox" Height="44" Margin="4,12,4,0" CornerRadius="6"
+                            Background="{DynamicResource B_Chip}" ClipToBounds="True">
+                        <Grid>
+                            <TextBlock Text="Uso de RAM - ultimos 60 s" FontSize="9.5"
+                                       Foreground="{DynamicResource B_Sub}" Margin="8,5,0,0" VerticalAlignment="Top"/>
+                            <Path x:Name="SparkRam" Stretch="Fill" Margin="8,17,8,7"
+                                  Stroke="{DynamicResource B_Accent}" StrokeThickness="1.6"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        </Grid>
+                    </Border>
+
                     <Button x:Name="BtnBoost" Style="{StaticResource PrimaryBtn}" Content="Mejorar el rendimiento"
                             Margin="4,12,4,0" HorizontalAlignment="Stretch" Click="BtnBoost_Click"/>
                     <ProgressBar x:Name="BarAct" Height="4" Margin="4,10,4,0" IsIndeterminate="True"
-                                 Visibility="Collapsed" Foreground="#4CC2FF" Background="#333333" BorderThickness="0"/>
-                    <TextBlock x:Name="TxtHint" Text="" FontSize="11" Foreground="#B9B9B9"
+                                 Visibility="Collapsed" Foreground="{DynamicResource B_Accent}"
+                                 Background="{DynamicResource B_Track}" BorderThickness="0"/>
+                    <TextBlock x:Name="TxtHint" Text="" FontSize="11" Foreground="{DynamicResource B_Sub}"
                                Margin="4,8,4,0" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
@@ -96,37 +119,54 @@
                 <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Tile}" MouseLeftButtonUp="GoProcesos">
                     <StackPanel>
                         <Grid>
-                            <TextBlock Text="Proceso" FontSize="13" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
-                            <TextBlock Text="&#x1F4CB;" FontSize="13" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock Text="Proceso" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource B_Text}" VerticalAlignment="Center"/>
+                            <Path Data="{StaticResource I.List}" Width="14" Height="14" Stretch="Uniform"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  Stroke="{DynamicResource B_Sub}" StrokeThickness="1.7"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                         </Grid>
-                        <TextBlock Text="En curso" FontSize="10.5" Foreground="#B9B9B9" Margin="0,7,0,0"/>
-                        <TextBlock x:Name="TxtApps" Text="..." FontSize="15" FontWeight="Bold" Foreground="#4CC2FF" Margin="0,2,0,0"/>
+                        <TextBlock Text="En curso" FontSize="10.5" Foreground="{DynamicResource B_Sub}" Margin="0,7,0,0"/>
+                        <TextBlock x:Name="TxtApps" Text="..." FontSize="15" FontWeight="Bold"
+                                   Foreground="{DynamicResource B_Accent}" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
 
                 <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Tile}" Margin="5,0,0,5" MouseLeftButtonUp="GoDeep">
                     <StackPanel>
                         <Grid>
-                            <TextBlock Text="Limpieza profunda" FontSize="13" FontWeight="SemiBold" Foreground="White"
-                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="&#x1F9F9;" FontSize="13" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock Text="Limpieza profunda" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource B_Text}" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <Path Data="{StaticResource I.Sparkle}" Width="14" Height="14" Stretch="Uniform"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  Stroke="{DynamicResource B_Sub}" StrokeThickness="1.7"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                         </Grid>
-                        <TextBlock x:Name="TxtDiskName" Text="Disco local (C:)" FontSize="10.5" Foreground="#B9B9B9" Margin="0,7,0,0"/>
-                        <TextBlock x:Name="TxtDiskVal" Text="..." FontSize="14" FontWeight="Bold" Foreground="White" Margin="0,2,0,0"/>
+                        <TextBlock x:Name="TxtDiskName" Text="Disco local (C:)" FontSize="10.5"
+                                   Foreground="{DynamicResource B_Sub}" Margin="0,7,0,0"/>
+                        <TextBlock x:Name="TxtDiskVal" Text="..." FontSize="14" FontWeight="Bold"
+                                   Foreground="{DynamicResource B_Text}" Margin="0,2,0,0"/>
                         <ProgressBar x:Name="BarDisk" Height="4" Margin="0,7,0,0" Maximum="100"
-                                     Foreground="#4CC2FF" Background="#333333" BorderThickness="0"/>
+                                     Foreground="{DynamicResource B_Accent}" Background="{DynamicResource B_Track}"
+                                     BorderThickness="0"/>
                     </StackPanel>
                 </Border>
 
                 <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource StatTile}" Margin="0,5,5,0">
                     <StackPanel>
                         <Grid>
-                            <TextBlock Text="Memoria" FontSize="13" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
-                            <TextBlock Text="&#x1F5A5;" FontSize="13" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock Text="Memoria" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource B_Text}" VerticalAlignment="Center"/>
+                            <Path Data="{StaticResource I.Monitor}" Width="14" Height="14" Stretch="Uniform"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  Stroke="{DynamicResource B_Sub}" StrokeThickness="1.7"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                         </Grid>
-                        <TextBlock Text="RAM libre" FontSize="10.5" Foreground="#B9B9B9" Margin="0,7,0,0"/>
+                        <TextBlock Text="RAM libre" FontSize="10.5" Foreground="{DynamicResource B_Sub}" Margin="0,7,0,0"/>
                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                            <TextBlock x:Name="TxtMemFree" Text="..." FontSize="14" FontWeight="Bold" Foreground="#4CC2FF"/>
+                            <TextBlock x:Name="TxtMemFree" Text="..." FontSize="14" FontWeight="Bold"
+                                       Foreground="{DynamicResource B_Accent}"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -134,12 +174,17 @@
                 <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource StatTile}" Margin="5,5,0,0" MouseLeftButtonUp="GoLimpieza">
                     <StackPanel>
                         <Grid>
-                            <TextBlock Text="Ultima limpieza" FontSize="13" FontWeight="SemiBold" Foreground="White"
-                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="&#x23F3;" FontSize="13" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock Text="Ultima limpieza" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource B_Text}" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <Path Data="{StaticResource I.Clock}" Width="14" Height="14" Stretch="Uniform"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  Stroke="{DynamicResource B_Sub}" StrokeThickness="1.7"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                         </Grid>
-                        <TextBlock Text="Realizada" FontSize="10.5" Foreground="#B9B9B9" Margin="0,7,0,0"/>
-                        <TextBlock x:Name="TxtLastClean" Text="Nunca" FontSize="14" FontWeight="Bold" Foreground="White" Margin="0,2,0,0"/>
+                        <TextBlock Text="Realizada" FontSize="10.5" Foreground="{DynamicResource B_Sub}" Margin="0,7,0,0"/>
+                        <TextBlock x:Name="TxtLastClean" Text="Nunca" FontSize="14" FontWeight="Bold"
+                                   Foreground="{DynamicResource B_Text}" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -152,12 +197,13 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
-                        <TextBlock Text="Limpieza rapida" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
+                        <TextBlock Text="Limpieza rapida" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource B_Text}"/>
                         <TextBlock Text="Como un reinicio sin reiniciar: cierra tus aplicaciones, borra temporales/caches y libera RAM"
-                                   FontSize="10.5" Foreground="#B9B9B9" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                   FontSize="10.5" Foreground="{DynamicResource B_Sub}" Margin="0,4,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                     <Button Grid.Column="1" x:Name="BtnQuickClean" Content="Limpiar" Padding="14,8" Margin="0"
-                            VerticalAlignment="Center" Background="#333333" Click="BtnQuickClean_Click"/>
+                            VerticalAlignment="Center" Background="{DynamicResource B_Button}" Click="BtnQuickClean_Click"/>
                 </Grid>
             </Border>
 

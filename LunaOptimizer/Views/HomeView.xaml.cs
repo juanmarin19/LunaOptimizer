@@ -1,8 +1,11 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using LunaOptimizer.Services;
 
 namespace LunaOptimizer.Views;
@@ -13,6 +16,11 @@ public partial class HomeView : UserControl
     private readonly Action<string> _status;
     private DateTime? _lastClean;
     private bool _tempBusy;
+
+    // Historial de uso de RAM: 20 muestras cada 3 s = 60 segundos.
+    private readonly double[] _hist = new double[20];
+    private int _histN;
+    private double _appsPrev;
 
     public HomeView(Action<string> go, Action<string> status)
     {
@@ -39,11 +47,40 @@ public partial class HomeView : UserControl
             var (total, free) = ProcessService.GetMemory();
             if (total <= 0) return;
             int pct = (int)Math.Round((total - free) * 100.0 / total);
-            TxtMemPct.Text = $"{pct}%";
-            TxtMemFree.Text = $"{free / 1024.0:F1} GB";
+            double liberoGB = free / 1024.0;
+            double prevPct = double.TryParse(TxtMemPct.Text.Replace("%", ""),
+                NumberStyles.Any, CultureInfo.InvariantCulture, out var p) ? p : 0;
+            double prevFree = double.TryParse(TxtMemFree.Text.Replace(" GB", ""),
+                NumberStyles.Any, CultureInfo.InvariantCulture, out var f) ? f : liberoGB;
+
+            Tween.Text("mempct", prevPct, pct, 420, "{0:0}%", s => TxtMemPct.Text = s);
+            Tween.Text("memfree", prevFree, liberoGB, 420, "{0:F1} GB", s => TxtMemFree.Text = s);
             TxtRamTotal.Text = $"RAM {total / 1024.0:F0} GB";
+
+            Array.Copy(_hist, 1, _hist, 0, _hist.Length - 1);
+            _hist[^1] = pct;
+            if (_histN < _hist.Length) _histN++;
+            DibujarSpark();
         }
         catch { }
+    }
+
+    /// Grafico lineal del uso de RAM (se reescala al tamanio real del Path).
+    private void DibujarSpark()
+    {
+        if (SparkRam is null || _histN < 2) return;
+        var sb = new StringBuilder();
+        int n = _histN;
+        for (int i = 0; i < n; i++)
+        {
+            int idx = _hist.Length - n + i;
+            double x = i * 100.0 / (n - 1);
+            double y = 100 - Math.Clamp(_hist[idx], 0, 100);
+            sb.Append(i == 0 ? "M" : "L")
+              .Append(x.ToString("F2", CultureInfo.InvariantCulture)).Append(',')
+              .Append(y.ToString("F2", CultureInfo.InvariantCulture)).Append(' ');
+        }
+        try { SparkRam.Data = Geometry.Parse(sb.ToString()); } catch { }
     }
 
     private void UpdateApps()
@@ -57,7 +94,8 @@ public partial class HomeView : UserControl
                 catch { }
                 finally { try { p.Dispose(); } catch { } }
             }
-            TxtApps.Text = $"{apps} Aplicaciones";
+            Tween.Text("apps", _appsPrev, apps, 420, "{0:0} Aplicaciones", s => TxtApps.Text = s);
+            _appsPrev = apps;
         }
         catch { TxtApps.Text = "-"; }
     }
@@ -71,8 +109,12 @@ public partial class HomeView : UserControl
             double usedGB = (d.TotalSize - d.AvailableFreeSpace) / 1073741824.0;
             double totalGB = d.TotalSize / 1073741824.0;
             TxtDiskName.Text = $"Disco local ({d.Name.TrimEnd('\\')})";
-            TxtDiskVal.Text = $"{usedGB:F1}GB/{totalGB:F1}GB";
-            BarDisk.Value = totalGB > 0 ? Math.Min(100, usedGB / totalGB * 100) : 0;
+            double prevUsed = double.TryParse(TxtDiskVal.Text.Split('/')[0].Replace("GB", ""),
+                NumberStyles.Any, CultureInfo.InvariantCulture, out var u) ? u : usedGB;
+            Tween.To("disk", prevUsed, usedGB, 420, v =>
+                TxtDiskVal.Text = $"{v:F1}GB/{totalGB:F1}GB");
+            double prevBar = BarDisk.Value;
+            Tween.To("bar", prevBar, Math.Min(100, usedGB / totalGB * 100), 500, v => BarDisk.Value = v);
         }
         catch { TxtDiskVal.Text = "-"; }
     }
@@ -85,7 +127,7 @@ public partial class HomeView : UserControl
         TxtLastClean.Text = last is null ? "Nunca" : last.Value.ToString("HH:mm");
     }
 
-    /// Tamanio aproximado de %TEMP% (con tope para no bloquear la UI).
+    /// Tamanio de %TEMP% (recorrido compartido con la limpieza rapida).
     private async Task UpdateTempAsync()
     {
         if (_tempBusy) return;
@@ -94,27 +136,11 @@ public partial class HomeView : UserControl
         {
             long bytes = await Task.Run(() =>
             {
-                long sum = 0; int n = 0;
-                var sw = Stopwatch.StartNew();
-                var pending = new Stack<string>();
-                pending.Push(Path.GetTempPath());
-                while (pending.Count > 0 && n < 8000 && sw.ElapsedMilliseconds < 1500)
+                long sum = 0;
+                foreach (var f in TempCleaner.SafeEnumerateFiles(Path.GetTempPath()))
                 {
-                    var cur = pending.Pop();
-                    string[] files;
-                    try { files = Directory.GetFiles(cur); } catch { files = Array.Empty<string>(); }
-                    foreach (var f in files)
-                    {
-                        try { sum += new FileInfo(f).Length; n++; } catch { }
-                        if (n >= 8000) break;
-                    }
-                    string[] dirs;
-                    try { dirs = Directory.GetDirectories(cur); } catch { dirs = Array.Empty<string>(); }
-                    foreach (var d in dirs)
-                    {
-                        try { if ((File.GetAttributes(d) & FileAttributes.ReparsePoint) == 0) pending.Push(d); }
-                        catch { }
-                    }
+                    long len = TempCleaner.SizeOf(f);
+                    if (len > 0) sum += len;
                 }
                 return sum;
             });
@@ -131,10 +157,16 @@ public partial class HomeView : UserControl
         TxtHint.Text = "Optimizando memoria...";
         try
         {
-            var (trimmed, gained, _) = await Task.Run(() => MemoryBoost.Boost());
-            TxtHint.Text = $"Listo: {trimmed} procesos optimizados y +{gained} MB de RAM libre ({DateTime.Now:HH:mm}).";
-            _status($"Mejora de rendimiento completada: +{gained} MB libres.");
+            var boost = await Task.Run(() => MemoryBoost.Boost());
+            TxtHint.Text = "Borrando temporales...";
+            var prog = new Progress<string>(s => TxtHint.Text = s);
+            var r = await TempCleaner.QuickCleanAsync(prog);
+
+            TxtHint.Text = ResumenBoost(boost.trimmed, boost.usoAntesMB, boost.usoDespuesMB, r) + $" ({DateTime.Now:HH:mm}).";
+            _status($"Mejora de rendimiento: RAM en uso {boost.usoAntesMB / 1024.0:F1} GB -> " +
+                    $"{boost.usoDespuesMB / 1024.0:F1} GB, {r.FilesDeleted} temporales borrados.");
             UpdateMemory();
+            _ = UpdateTempAsync();
         }
         catch (Exception ex) { TxtHint.Text = "Error: " + ex.Message; }
         finally
@@ -142,6 +174,17 @@ public partial class HomeView : UserControl
             BarAct.Visibility = Visibility.Collapsed;
             BtnBoost.IsEnabled = true;
         }
+    }
+
+    /// "N procesos · RAM en uso 9,2 GB -> 6,7 GB (−2,5 GB) · X temporales (Y MB) · Z al reiniciar"
+    private static string ResumenBoost(int trimmed, long usoAntesMB, long usoDespuesMB, TempCleaner.CleanResult r)
+    {
+        long baja = Math.Max(0, usoAntesMB - usoDespuesMB);
+        string msg = $"{trimmed} procesos · RAM en uso {usoAntesMB / 1024.0:F1} GB -> {usoDespuesMB / 1024.0:F1} GB (−{baja / 1024.0:F1} GB)" +
+                     $" · {r.FilesDeleted} temporales borrados ({TempCleaner.FormatBytes(r.BytesFreed)})";
+        if (r.ScheduledReboot > 0)
+            msg += $" · {r.ScheduledReboot} al reiniciar ({TempCleaner.FormatBytes(r.ScheduledBytes)})";
+        return msg;
     }
 
     private async void BtnQuickClean_Click(object sender, RoutedEventArgs e)
@@ -163,15 +206,18 @@ public partial class HomeView : UserControl
         {
             var (closed, failedClose) = await Task.Run(() => ProcessService.CloseAllApps(prog));
             var r = await TempCleaner.QuickCleanAsync(prog);
-            var (trimmed, gained, _) = await Task.Run(() => MemoryBoost.Boost());
+            var boost = await Task.Run(() => MemoryBoost.Boost());
 
             _lastClean = DateTime.Now;
             UpdateLastClean();
             string extra = failedClose > 0 ? $", {failedClose} protegidos" : "";
+            string reinicio = r.ScheduledReboot > 0 ? $", {r.ScheduledReboot} al reiniciar" : "";
+            long baja = Math.Max(0, boost.usoAntesMB - boost.usoDespuesMB);
             TxtHint.Text = $"Reinicio limpio: {closed} procesos cerrados{extra}, " +
-                           $"{r.FilesDeleted} temporales borrados ({TempCleaner.FormatBytes(r.BytesFreed)}), " +
-                           $"+{gained} MB de RAM ({DateTime.Now:HH:mm}).";
-            _status($"Limpieza rapida: {closed} procesos cerrados, {TempCleaner.FormatBytes(r.BytesFreed)} borrados, +{gained} MB de RAM.");
+                           $"{r.FilesDeleted} temporales borrados ({TempCleaner.FormatBytes(r.BytesFreed)}){reinicio}, " +
+                           $"RAM en uso −{baja / 1024.0:F1} GB ({DateTime.Now:HH:mm}).";
+            _status($"Limpieza rapida: {closed} procesos cerrados, {TempCleaner.FormatBytes(r.BytesFreed)} borrados{reinicio}, " +
+                    $"RAM en uso −{baja / 1024.0:F1} GB.");
             UpdateMemory();
             UpdateApps();
             _ = UpdateTempAsync();

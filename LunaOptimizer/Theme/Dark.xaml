@@ -1,0 +1,36 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Tema oscuro (por defecto). Mismas claves que Theme/Light.xaml -->
+    <SolidColorBrush x:Key="B_Window" Color="#1A1A1A"/>
+    <SolidColorBrush x:Key="B_Bg" Color="#1A1A1A"/>
+    <SolidColorBrush x:Key="B_Rail" Color="#0F0F0F"/>
+    <SolidColorBrush x:Key="B_Card" Color="#242424"/>
+    <SolidColorBrush x:Key="B_Panel" Color="#2D2D2D"/>
+    <SolidColorBrush x:Key="B_Border" Color="#333333"/>
+    <SolidColorBrush x:Key="B_BorderSoft" Color="#2D2D2D"/>
+    <SolidColorBrush x:Key="B_Text" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="B_TextSoft" Color="#E8E8E8"/>
+    <SolidColorBrush x:Key="B_Sub" Color="#B9B9B9"/>
+    <SolidColorBrush x:Key="B_Accent" Color="#4CC2FF"/>
+    <SolidColorBrush x:Key="B_AccentHover" Color="#67CDFF"/>
+    <SolidColorBrush x:Key="B_AccentPressed" Color="#33B5F8"/>
+    <SolidColorBrush x:Key="B_OnAccent" Color="#0B1B24"/>
+    <SolidColorBrush x:Key="B_Green" Color="#6CCB7F"/>
+    <SolidColorBrush x:Key="B_Red" Color="#FF7B7B"/>
+    <SolidColorBrush x:Key="B_OnRed" Color="#0B1B24"/>
+    <SolidColorBrush x:Key="B_Yellow" Color="#F5C76A"/>
+    <SolidColorBrush x:Key="B_Hover" Color="#1F1F1F"/>
+    <SolidColorBrush x:Key="B_Hover2" Color="#262626"/>
+    <SolidColorBrush x:Key="B_HoverTile" Color="#2C2C2C"/>
+    <SolidColorBrush x:Key="B_Button" Color="#333333"/>
+    <SolidColorBrush x:Key="B_ButtonHover" Color="#404040"/>
+    <SolidColorBrush x:Key="B_ButtonDisabled" Color="#2A2A2A"/>
+    <SolidColorBrush x:Key="B_DisabledText" Color="#7A7A7A"/>
+    <SolidColorBrush x:Key="B_Input" Color="#333333"/>
+    <SolidColorBrush x:Key="B_Caret" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="B_Chip" Color="#1C3542"/>
+    <SolidColorBrush x:Key="B_Track" Color="#333333"/>
+    <SolidColorBrush x:Key="B_Thumb" Color="#5A5A5A"/>
+    <SolidColorBrush x:Key="B_Tab" Color="#11111B"/>
+    <SolidColorBrush x:Key="B_TabHover" Color="#585B70"/>
+</ResourceDictionary>
