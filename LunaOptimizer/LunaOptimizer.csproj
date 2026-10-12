@@ -20,6 +20,7 @@
   <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
     <PackageReference Include="System.Management" Version="8.0.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
   </ItemGroup>
 
   <!-- Winapp2.ini viaja dentro del exe: sin el, la pestaña Limpieza sale vacia en otro PC -->
