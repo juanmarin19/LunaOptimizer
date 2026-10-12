@@ -290,17 +290,7 @@ public static class DeepCleanService
         ctx.Report(DeepPhase.Scan, idx, CatState.Done, "", cat.Bytes, 1);
     }
 
-    private static long StatSize(string path)
-    {
-        try
-        {
-            var fi = new FileInfo(path);
-            if (!fi.Exists) return -1;
-            if ((fi.Attributes & (FileAttributes.ReparsePoint | FileAttributes.Directory)) != 0) return -1;
-            return fi.Length;
-        }
-        catch { return -1; }
-    }
+    private static long StatSize(string path) => TempCleaner.SizeOf(path);
 
     private static List<string> RecommendedDirs()
     {
@@ -353,16 +343,8 @@ public static class DeepCleanService
     private static void EmptyDirs(DeepCatResult cat)
     {
         foreach (var dir in cat.Dirs)
-        {
             foreach (var d in TempCleaner.SafeEnumerateDirs(dir))
-            {
-                try
-                {
-                    if (Directory.Exists(d) && !Directory.EnumerateFileSystemEntries(d).Any()) Directory.Delete(d);
-                }
-                catch { }
-            }
-        }
+                TempCleaner.DeleteIfEmpty(d);
     }
 
     private static void RemoveSelfCleanup(DeepCatResult cat)
@@ -376,13 +358,7 @@ public static class DeepCleanService
                 {
                     if (fk.Flag != FileKeyFlag.RemoveSelf) continue;
                     foreach (var d in expander.ResolvePaths(fk.Path))
-                    {
-                        try
-                        {
-                            if (Directory.Exists(d) && !Directory.EnumerateFileSystemEntries(d).Any()) Directory.Delete(d);
-                        }
-                        catch { }
-                    }
+                        TempCleaner.DeleteIfEmpty(d);
                 }
             }
         }

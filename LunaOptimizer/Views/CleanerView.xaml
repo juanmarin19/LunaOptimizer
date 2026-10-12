@@ -15,32 +15,42 @@
         </Border>
 
         <!-- Lista de aplicaciones detectadas -->
-        <Border Grid.Row="1" Background="#1A1A1A" CornerRadius="10" BorderBrush="#2D2D2D" BorderThickness="1">
-            <ListView x:Name="List" SelectionMode="Extended" Background="Transparent" Foreground="White"
-                      BorderThickness="0" FontSize="13" ScrollViewer.HorizontalScrollBarVisibility="Hidden">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="" Width="34">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Image Source="{Binding Icon}" Width="18" Height="18" Stretch="Uniform"/>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="App" Width="218">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Name}" Foreground="White" FontSize="13"
-                                               TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="Tamano" DisplayMemberBinding="{Binding Size}" Width="90"/>
-                    </GridView>
-                </ListView.View>
-            </ListView>
+        <Border Grid.Row="1" Background="{DynamicResource B_Bg}" CornerRadius="10"
+                BorderBrush="{DynamicResource B_BorderSoft}" BorderThickness="1">
+            <Grid>
+                <ListView x:Name="List" SelectionMode="Extended" Background="Transparent"
+                          Foreground="{DynamicResource B_Text}"
+                          BorderThickness="0" FontSize="13" ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="" Width="34">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding Icon}" Width="18" Height="18" Stretch="Uniform"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="App" Width="218">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" Foreground="{DynamicResource B_Text}" FontSize="13"
+                                                   TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Tamano" DisplayMemberBinding="{Binding Size}" Width="90"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+
+                <!-- Estado vacio -->
+                <TextBlock x:Name="TxtEmpty" Text="Buscando aplicaciones instaladas..." FontSize="12"
+                           Foreground="{DynamicResource B_Sub}" TextWrapping="Wrap" TextAlignment="Center"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24"/>
+            </Grid>
         </Border>
 
-        <TextBlock Grid.Row="2" x:Name="TxtStatus" Text="..." Foreground="#B9B9B9" FontSize="12" Margin="2,8,0,0"/>
+        <TextBlock Grid.Row="2" x:Name="TxtStatus" Text="..." Foreground="{DynamicResource B_Sub}"
+                   FontSize="12" Margin="2,8,0,0"/>
     </Grid>
 </UserControl>

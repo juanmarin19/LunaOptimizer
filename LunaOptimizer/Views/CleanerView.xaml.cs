@@ -30,6 +30,12 @@ public partial class CleanerView : UserControl
         if (content is null)
         {
             TxtStatus.Text = "No se encontro Winapp2.ini (embebido ni en disco).";
+            if (TxtEmpty is not null)
+            {
+                TxtEmpty.Text = "No se pudo cargar la base de limpieza.\n" +
+                                "Descarga Winapp2.ini junto a LunaOptimizer.exe y vuelve a abrir la app.";
+                TxtEmpty.Visibility = Visibility.Visible;
+            }
             return;
         }
         await Task.Run(() =>
@@ -38,9 +44,23 @@ public partial class CleanerView : UserControl
             _entries = all.Where(e => _detect.IsInstalled(e)).ToList();
         });
         List.ItemsSource = _entries.Select(e => new EntryVm(e)).ToList();
+        ActualizarVacio();
         TxtStatus.Text = $"{_entries.Count} apps detectadas. Analizando tamanos...";
         // Auto-analizar tamanos en fondo para que no aparezca "-" (tu reporte)
         _ = AutoAnalyzeAsync();
+    }
+
+    /// Mensaje centrado cuando no hay nada que listar.
+    private void ActualizarVacio()
+    {
+        if (TxtEmpty is null || List is null) return;
+        if (List.Items.Count > 0)
+        {
+            TxtEmpty.Visibility = Visibility.Collapsed;
+            return;
+        }
+        TxtEmpty.Text = "No se detectaron aplicaciones instaladas con reglas de limpieza.";
+        TxtEmpty.Visibility = Visibility.Visible;
     }
 
     private async Task AutoAnalyzeAsync()
@@ -59,25 +79,37 @@ public partial class CleanerView : UserControl
             }
             catch { vm.Size = "-"; }
             done++;
+            TxtStatus.Text = $"Analizando tamanos... {done}/{vms.Count}";
         }
-        List.Items.Refresh();
         TxtStatus.Text = $"{vms.Count} apps instaladas, {ScanResult.FormatBytes(total)} de datos acumulados.";
     }
 
     private void BtnDeep_Click(object sender, RoutedEventArgs e) => _go("deepclean");
 
-    public class EntryVm
+    /// Vista de cada app de la lista. Implementa INotifyPropertyChanged para
+    /// que Size se actualice EN VIVO cuando el analisis en fondo termina con
+    /// esa app: sin esto habria que hacer List.Items.Refresh() al final y el
+    /// usuario veria "calculando..." minutos enteros.
+    public class EntryVm : System.ComponentModel.INotifyPropertyChanged
     {
+        private string _size = "calculando...";
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+
         public EntryVm(CleanerEntry e)
         {
-            Entry = e; Name = e.Name; Size = "calculando...";
+            Entry = e; Name = e.Name;
             Icon = ResolveIcon(e);
         }
         public CleanerEntry Entry { get; }
         public string Name { get; }
-        public string Size { get; set; }
         public ScanResult? Result { get; set; }
         public BitmapSource? Icon { get; }
+
+        public string Size
+        {
+            get => _size;
+            set { _size = value; PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(Size))); }
+        }
     }
 
     /// Icono: busca el primer DetectFile existente y extrae su icono.

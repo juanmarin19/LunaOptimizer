@@ -19,6 +19,7 @@ public partial class DeepCleanView : UserControl
     private readonly TextBlock[] _st;
     private List<DeepCatResult>? _results;
     private CancellationTokenSource? _cts;
+    private CancellationTokenSource? _cleanCts;
     private Phase _phase = Phase.Idle;
 
     public string BackTarget { get; set; } = "home";
@@ -47,6 +48,10 @@ public partial class DeepCleanView : UserControl
                 BtnAction.IsEnabled = false;
                 TxtHeadSub.Text = "Cancelando...";
                 _cts?.Cancel();
+                break;
+            case Phase.Cleaning:
+                TxtHeadSub.Text = "Cancelando...";
+                _cleanCts?.Cancel();
                 break;
             case Phase.Scanned:
                 await CleanAsync();
@@ -123,16 +128,18 @@ public partial class DeepCleanView : UserControl
         if (r != MessageBoxResult.Yes) return;
 
         _phase = Phase.Cleaning;
-        BtnAction.Content = "Limpiando...";
-        BtnAction.IsEnabled = false;
+        BtnAction.Content = "Cancelar limpieza";
+        BtnAction.IsEnabled = true;
         BarScan.Value = 0;
         TxtHeadSub.Text = "Eliminando archivos...";
         TxtStatus.Text = "Limpiando...";
         var pr = new Progress<DeepScanUpdate>(Apply);
+        using var cts = new CancellationTokenSource();
+        _cleanCts = cts;
         try
         {
             var cats = _results;
-            var (cleaned, bytes) = await Task.Run(() => DeepCleanService.Clean(cats, pr, default));
+            var (cleaned, bytes) = await Task.Run(() => DeepCleanService.Clean(cats, pr, cts.Token), cts.Token);
             _phase = Phase.Cleaned;
             BarScan.Value = 100;
             TxtHead.Text = $"Se liberaron {TempCleaner.FormatBytes(bytes)}";
@@ -143,6 +150,15 @@ public partial class DeepCleanView : UserControl
             TxtStatus.Text = $"Limpieza: {cleaned} archivos, {TempCleaner.FormatBytes(bytes)} liberados.";
             _status($"Limpieza profunda: {TempCleaner.FormatBytes(bytes)} liberados.");
         }
+        catch (OperationCanceledException)
+        {
+            _phase = Phase.Scanned;
+            BtnAction.Content = "Limpiar";
+            BtnAction.Style = (Style)FindResource("PrimaryBtn");
+            BtnAction.IsEnabled = true;
+            TxtHeadSub.Text = "Limpieza cancelada.";
+            TxtStatus.Text = "Limpieza cancelada.";
+        }
         catch (Exception ex)
         {
             _phase = Phase.Scanned;
@@ -152,6 +168,7 @@ public partial class DeepCleanView : UserControl
             TxtHeadSub.Text = "Error: " + ex.Message;
             TxtStatus.Text = "Error: " + ex.Message;
         }
+        finally { _cleanCts = null; }
     }
 
     private void Apply(DeepScanUpdate u)

@@ -106,14 +106,7 @@ public static class ScanEngine
             {
                 if (fk.Flag != FileKeyFlag.RemoveSelf) continue;
                 foreach (var d in _expander.ResolvePaths(fk.Path))
-                {
-                    try
-                    {
-                        if (Directory.Exists(d) && !Directory.EnumerateFileSystemEntries(d).Any())
-                            Directory.Delete(d);
-                    }
-                    catch { }
-                }
+                    TempCleaner.DeleteIfEmpty(d);
             }
         }
         catch { }
