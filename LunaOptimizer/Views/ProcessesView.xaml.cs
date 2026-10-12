@@ -8,9 +8,12 @@ namespace LunaOptimizer.Views;
 public partial class ProcessesView : UserControl
 {
     private System.Windows.Threading.DispatcherTimer? _timer;
+    private System.Windows.Threading.DispatcherTimer? _filterTimer;
+    private readonly Action<string>? _status;
 
-    public ProcessesView()
+    public ProcessesView(Action<string>? status = null)
     {
+        _status = status;
         InitializeComponent();
         _ = RefreshAsync();
     }
@@ -37,6 +40,7 @@ public partial class ProcessesView : UserControl
                 Grid.ItemsSource = groups;
                 int totalProcs = groups.Sum(g => g.Count);
                 TxtCount.Text = $"{groups.Count} apps ({totalProcs} procesos)";
+                ActualizarVacio(groups.Count);
             }
             else
             {
@@ -47,6 +51,7 @@ public partial class ProcessesView : UserControl
                 var items = await Task.Run(() => ProcessService.GetProcesses(filter, onlySafe));
                 Grid.ItemsSource = items;
                 TxtCount.Text = $"{items.Count} procesos";
+                ActualizarVacio(items.Count);
             }
         }
         catch (Exception ex)
@@ -56,9 +61,32 @@ public partial class ProcessesView : UserControl
         }
     }
 
+    /// Mensaje centrado cuando la lista no tiene nada que mostrar.
+    private void ActualizarVacio(int n)
+    {
+        if (TxtEmpty is null) return;
+        if (n > 0)
+        {
+            TxtEmpty.Visibility = Visibility.Collapsed;
+            return;
+        }
+        string f = (TxtFilter?.Text ?? "").Trim();
+        TxtEmpty.Text = f.Length > 0
+            ? $"No hay procesos que coincidan con \"{f}\"."
+            : "No hay procesos que mostrar.\nActiva \"Ver todos\" para incluir procesos de fondo.";
+        TxtEmpty.Visibility = Visibility.Visible;
+    }
+
     public void Refresh() => _ = RefreshAsync();
 
-    private void TxtFilter_TextChanged(object sender, TextChangedEventArgs e) => Refresh();
+    private void TxtFilter_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        _filterTimer?.Stop();
+        _filterTimer = new System.Windows.Threading.DispatcherTimer
+        { Interval = TimeSpan.FromMilliseconds(300) };
+        _filterTimer.Tick += (_, _) => { _filterTimer.Stop(); Refresh(); };
+        _filterTimer.Start();
+    }
     private void BtnRefresh_Click(object sender, RoutedEventArgs e) => Refresh();
 
     private void BtnKillRow_Click(object sender, RoutedEventArgs e)
@@ -75,11 +103,11 @@ public partial class ProcessesView : UserControl
                     MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
-            var r = MessageBox.Show($"Terminar {grp.Display} ({grp.Count} procesos, {grp.TotalRamMB} MB)?", "Confirmar",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (r != MessageBoxResult.Yes) return;
+            // Sin confirmacion: "Finalizar" cierra directamente y el resultado
+            // se informa en la barra de estado (no con ventanas modales).
             var (killed, failed) = ProcessService.KillGroup(grp);
-            MessageBox.Show($"{grp.Name}: {killed} terminados, {failed} fallaron.");
+            _status?.Invoke($"{grp.Name}: {killed} terminados de {grp.Count}" +
+                            (failed > 0 ? $", {failed} fallaron" : "") + ".");
             Refresh();
             return;
         }
@@ -94,11 +122,8 @@ public partial class ProcessesView : UserControl
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
-        var r2 = MessageBox.Show($"Terminar {pi.Name} ({pi.Pid})?", "Confirmar",
-            MessageBoxButton.YesNo, MessageBoxImage.Warning);
-        if (r2 != MessageBoxResult.Yes) return;
         var (ok, msg) = ProcessService.KillProcess(pi.Pid);
-        MessageBox.Show(msg);
+        _status?.Invoke(msg);
         Refresh();
     }
 
@@ -117,6 +142,7 @@ public partial class ProcessesView : UserControl
 
     private void ChkAuto_Checked(object sender, RoutedEventArgs e)
     {
+        _timer?.Stop();
         _timer = new System.Windows.Threading.DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(2)

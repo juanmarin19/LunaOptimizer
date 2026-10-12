@@ -31,6 +31,11 @@ public class ProcessGroup
     public string KillLabel => CanKill ? "Si" : "No (sistema)";
     public string Display => Count > 1 ? $"{Name} x{Count}" : Name;
     public List<int> PidList { get; set; } = new();
+
+    public bool MostrarCandado => !CanKill;
+
+    // RAM legible (1 decimal, separador espanol).
+    public string RamTexto => $"{TotalRamMB.ToString("F1", System.Globalization.CultureInfo.GetCultureInfo("es-AR"))} MB";
 }
 
 

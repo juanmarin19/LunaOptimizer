@@ -96,11 +96,11 @@ public static class ProcessService
         return set;
     }
 
-    /// Apps empaquetadas (Microsoft Store): PC Manager las lista aunque ahora
-    /// no tengan ventana visible (Photos, Xbox...). Su exe vive en WindowsApps.
-    private static bool IsPackagedApp(string path)
-        => !string.IsNullOrEmpty(path) &&
-           path.Contains("\\WindowsApps\\", StringComparison.OrdinalIgnoreCase);
+    /// Criterio PC Manager: SOLO procesos de usuario con al menos una ventana
+    /// visible. Antes se admitia tambien "exe bajo WindowsApps", pero eso cuela
+    /// los runtimes de cualquier app Store (python, bash, git de Hermes, etc.)
+    /// que no son apps y no tienen ventana. Ventana visible o no se muestra.
+    private static bool EsAppVisible(int pid, HashSet<int> winPids) => winPids.Contains(pid);
 
     public static List<ProcessInfo> GetProcesses(string filter = "", bool onlySafe = true)
     {
@@ -123,10 +123,9 @@ public static class ProcessService
                 try { p.Dispose(); } catch { }
                 continue;
             }
-            // Solo lo que se puede ver y cerrar: ni del sistema, ni de fondo.
             bool canKill = !ProtectedNames.Contains(name) && p.Id != Environment.ProcessId;
             if (onlySafe &&
-                (!canKill || !(winPids!.Contains(p.Id) || IsPackagedApp(path)) || NotAnApp(name)))
+                (!canKill || !EsAppVisible(p.Id, winPids!) || NotAnApp(name)))
             { try { p.Dispose(); } catch { } continue; }
             if (!string.IsNullOrWhiteSpace(filter) &&
                 !name.Contains(filter, StringComparison.OrdinalIgnoreCase))
@@ -167,8 +166,7 @@ public static class ProcessService
             foreach (var p in all)
             {
                 if (ProtectedNames.Contains(p.Name) || NotAnApp(p.Name)) continue;
-                if (p.Pid != Environment.ProcessId &&
-                    (winPids.Contains(p.Pid) || IsPackagedApp(p.Path)))
+                if (p.Pid != Environment.ProcessId && EsAppVisible(p.Pid, winPids))
                     appNames.Add(p.Name);
             }
             all = all.Where(p => appNames.Contains(p.Name)).ToList();

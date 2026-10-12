@@ -20,69 +20,79 @@
                 <TextBox x:Name="TxtFilter" Width="104" ToolTip="Filtrar por nombre" TextChanged="TxtFilter_TextChanged"/>
                 <Button x:Name="BtnRefresh" Content="Actualizar" Style="{StaticResource CompactBtn}" Click="BtnRefresh_Click"/>
                 <Button x:Name="BtnLocation" Content="Ubicacion" Style="{StaticResource CompactBtn}" Click="BtnLocation_Click"/>
-                <CheckBox x:Name="ChkGroup" Content="Agrupar" Foreground="White" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" IsChecked="True" Checked="ChkGroup_Changed" Unchecked="ChkGroup_Changed" ToolTip="Una fila por programa (brave x8)"/>
-                <CheckBox x:Name="ChkAuto" Content="Auto 2s" Foreground="White" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" Checked="ChkAuto_Checked" Unchecked="ChkAuto_Unchecked"/>
-                <CheckBox x:Name="ChkTodos" Content="Ver todos" Foreground="White" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" Checked="ChkTodos_Changed" Unchecked="ChkTodos_Changed" ToolTip="Mostrar tambien procesos del sistema y de fondo"/>
-                <TextBlock x:Name="TxtCount" Text="" Foreground="#B9B9B9" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                <CheckBox x:Name="ChkGroup" Content="Agrupar" Foreground="{DynamicResource B_Text}" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" IsChecked="True" Checked="ChkGroup_Changed" Unchecked="ChkGroup_Changed" ToolTip="Una fila por programa (brave x8)"/>
+                <CheckBox x:Name="ChkAuto" Content="Auto 2s" Foreground="{DynamicResource B_Text}" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" Checked="ChkAuto_Checked" Unchecked="ChkAuto_Unchecked"/>
+                <CheckBox x:Name="ChkTodos" Content="Ver todos" Foreground="{DynamicResource B_Text}" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" Checked="ChkTodos_Changed" Unchecked="ChkTodos_Changed" ToolTip="Mostrar tambien procesos del sistema y de fondo"/>
+                <TextBlock x:Name="TxtCount" Text="" Foreground="{DynamicResource B_Sub}" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
             </WrapPanel>
         </Border>
 
         <!-- Lista -->
-        <Border Grid.Row="1" Background="#1A1A1A" CornerRadius="10" BorderBrush="#2D2D2D" BorderThickness="1">
-            <DataGrid x:Name="Grid" AutoGenerateColumns="False" IsReadOnly="True"
-                      Background="Transparent" Foreground="White"
-                      HeadersVisibility="Column" GridLinesVisibility="None" BorderThickness="0" FontSize="12"
-                      ScrollViewer.HorizontalScrollBarVisibility="Hidden">
-                <DataGrid.Columns>
-                    <DataGridTemplateColumn x:Name="ColIcon" Header="" Width="30">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Image Source="{Binding Icon}" Width="18" Height="18" Stretch="Uniform"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTextColumn x:Name="ColName" Header="Programa" Binding="{Binding Display}" Width="*">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="White"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                                <Setter Property="Padding" Value="6,4,4,4"/>
-                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn x:Name="ColPids" Header="PIDs" Binding="{Binding Pids}" Width="56">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="#B9B9B9"/>
-                                <Setter Property="Padding" Value="4,4"/>
-                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn x:Name="ColRam" Header="RAM MB" Binding="{Binding TotalRamMB}" Width="62">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="#6CCB7F"/>
-                                <Setter Property="FontWeight" Value="Bold"/>
-                                <Setter Property="Padding" Value="4,4"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
-                    <DataGridTemplateColumn Width="78">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button Content="Finalizar" Click="BtnKillRow_Click"
-                                        Style="{StaticResource CompactBtn}"
-                                        Background="#FF7B7B" Foreground="#0B1B24"
-                                        FontWeight="SemiBold" Padding="7,3" FontSize="11"
-                                        HorizontalAlignment="Center" VerticalAlignment="Center"
-                                        ToolTip="Terminar este programa"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
+        <Border Grid.Row="1" Background="{DynamicResource B_Bg}" CornerRadius="10"
+                BorderBrush="{DynamicResource B_BorderSoft}" BorderThickness="1">
+            <Grid>
+                <DataGrid x:Name="Grid" AutoGenerateColumns="False" IsReadOnly="True"
+                          Background="Transparent" Foreground="{DynamicResource B_Text}"
+                          HeadersVisibility="Column" GridLinesVisibility="None" BorderThickness="0" FontSize="12"
+                          ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn x:Name="ColIcon" Header="" Width="30">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Source="{Binding Icon}" Width="18" Height="18" Stretch="Uniform"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn x:Name="ColName" Header="Programa" Binding="{Binding Display}" Width="*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{DynamicResource B_Text}"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="Padding" Value="6,4,4,4"/>
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn x:Name="ColPids" Header="PIDs" Binding="{Binding Pids}" Width="56">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{DynamicResource B_Sub}"/>
+                                    <Setter Property="Padding" Value="4,4"/>
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn x:Name="ColRam" Header="RAM MB" Binding="{Binding TotalRamMB}" Width="62">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{DynamicResource B_Green}"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="Padding" Value="4,4"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTemplateColumn Width="74">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <!-- Cerrar: boton fijo en cada fila, igual que "Desactivar" en Apps.
+                                         Los procesos del sistema muestran candado y no se pueden cerrar. -->
+                                    <Button Content="Cerrar" Tag="{Binding}" Click="BtnKillRow_Click"
+                                            Style="{StaticResource {x:Type Button}}" Padding="9,4" FontSize="11"
+                                            Background="{DynamicResource B_Red}" Foreground="{DynamicResource B_OnRed}"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            ToolTip="Cerrar este programa"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Estado vacio -->
+                <TextBlock x:Name="TxtEmpty" Text="No hay procesos que mostrar." FontSize="12"
+                           Foreground="{DynamicResource B_Sub}" TextWrapping="Wrap" TextAlignment="Center"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24"
+                           Visibility="Collapsed"/>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>
