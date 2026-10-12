@@ -29,14 +29,26 @@ public partial class AppsView : UserControl
         TxtEmpty.Visibility = Visibility.Visible;
         _ = Task.Run(() =>
         {
-            var apps = AppUninstallerService.GetInstalledApps();
-            Dispatcher.Invoke(() =>
+            try
             {
-                _all = apps;
-                ApplyFilter();
-                TxtEmpty.Visibility = apps.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-                if (apps.Count == 0) TxtEmpty.Text = "No se encontraron apps.";
-            });
+                var apps = AppUninstallerService.GetInstalledApps();
+                Dispatcher.Invoke(() =>
+                {
+                    _all = apps;
+                    ApplyFilter();
+                    TxtEmpty.Visibility = apps.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+                    if (apps.Count == 0) TxtEmpty.Text = "No se encontraron apps.";
+                });
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error(ex, "Listando apps instaladas");
+                Dispatcher.Invoke(() =>
+                {
+                    TxtEmpty.Text = "No se pudieron leer las apps instaladas.";
+                    TxtEmpty.Visibility = Visibility.Visible;
+                });
+            }
         });
     }
 
@@ -74,11 +86,14 @@ public partial class AppsView : UserControl
 
         var (code, err) = await Task.Run(() => AppUninstallerService.Uninstall(app));
 
-        if (code == 0)
+        // 0 = OK; 3010/1641 = OK pero pide reiniciar (Windows lo interpreta como exito).
+        bool ok = code is 0 or 3010 or 1641;
+        if (ok)
         {
             // borrar entrada huerfana si quedo
             bool regBorrada = await Task.Run(() => AppUninstallerService.RemoveRegistryEntry(app));
-            TxtStatus.Text = $"{app.Name} desinstalado." + (regBorrada ? "" : " (entrada del registro conservada)");
+            string avisoReinicio = code is 3010 or 1641 ? " (reinicia para terminar)" : "";
+            TxtStatus.Text = $"{app.Name} desinstalado{avisoReinicio}." + (regBorrada ? "" : " (entrada del registro conservada)");
             _status?.Invoke($"Desinstalado: {app.Name}.");
             Refresh();
         }

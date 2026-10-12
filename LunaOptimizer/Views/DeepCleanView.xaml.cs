@@ -35,7 +35,9 @@ public partial class DeepCleanView : UserControl
 
     public void OnShown()
     {
-        if (_phase is Phase.Idle or Phase.Cancelled) _ = StartScanAsync();
+        // Idle/Cancelled: primera vez o se cancelo. Cleaned: volvemos tras limpiar,
+        // conviene re-analizar para no mostrar resultados ya borrados.
+        if (_phase is Phase.Idle or Phase.Cancelled or Phase.Cleaned) _ = StartScanAsync();
     }
 
     private void BtnBack_Click(object sender, RoutedEventArgs e) => _nav(BackTarget);
@@ -83,10 +85,12 @@ public partial class DeepCleanView : UserControl
             _phase = Phase.Scanned;
             long total = cats.Sum(c => c.Bytes);
             int files = cats.Sum(c => c.Files.Count);
-            int found = cats.Count(c => c.Bytes > 0);
+            int regs = cats.Sum(c => c.RegistryCount);
+            int found = cats.Count(c => c.Bytes > 0 || c.RegistryCount > 0);
             BarScan.Value = 100;
             TxtHead.Text = $"Se detectaron {TempCleaner.FormatBytes(total)} elementos para limpiar";
-            TxtHeadSub.Text = $"{files} archivos en {found} de {cats.Count} categorias.";
+            TxtHeadSub.Text = $"{files} archivos en {found} de {cats.Count} categorias."
+                              + (regs > 0 ? $" {regs} entradas de registro." : "");
             BtnAction.Content = "Limpiar";
             BtnAction.Style = (Style)FindResource("PrimaryBtn");
             BtnAction.IsEnabled = true;
@@ -122,8 +126,11 @@ public partial class DeepCleanView : UserControl
         if (_results is null) return;
         long total = _results.Sum(c => c.Bytes);
         int files = _results.Sum(c => c.Files.Count);
-        if (total <= 0) return;
-        var r = MessageBox.Show($"Eliminar {files} archivos ({TempCleaner.FormatBytes(total)})?",
+        int regs = _results.Sum(c => c.RegistryCount);
+        if (total <= 0 && regs <= 0) return;
+        string detalle = $"Eliminar {files} archivos ({TempCleaner.FormatBytes(total)})"
+            + (regs > 0 ? $" y {regs} entradas de registro" : "") + "?";
+        var r = MessageBox.Show(detalle,
             "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning);
         if (r != MessageBoxResult.Yes) return;
 
@@ -139,16 +146,19 @@ public partial class DeepCleanView : UserControl
         try
         {
             var cats = _results;
-            var (cleaned, bytes) = await Task.Run(() => DeepCleanService.Clean(cats, pr, cts.Token), cts.Token);
+            var (cleaned, bytes, cleanedRegs) = await Task.Run(() => DeepCleanService.Clean(cats, pr, cts.Token), cts.Token);
             _phase = Phase.Cleaned;
             BarScan.Value = 100;
             TxtHead.Text = $"Se liberaron {TempCleaner.FormatBytes(bytes)}";
-            TxtHeadSub.Text = $"{cleaned} archivos eliminados.";
+            TxtHeadSub.Text = $"{cleaned} archivos eliminados."
+                              + (cleanedRegs > 0 ? $" {cleanedRegs} entradas de registro." : "");
             BtnAction.Content = "Analizar";
             BtnAction.Style = (Style)FindResource(typeof(Button));
             BtnAction.IsEnabled = true;
-            TxtStatus.Text = $"Limpieza: {cleaned} archivos, {TempCleaner.FormatBytes(bytes)} liberados.";
-            _status($"Limpieza profunda: {TempCleaner.FormatBytes(bytes)} liberados.");
+            TxtStatus.Text = $"Limpieza: {cleaned} archivos, {TempCleaner.FormatBytes(bytes)} liberados."
+                             + (cleanedRegs > 0 ? $" {cleanedRegs} entradas de registro." : "");
+            _status($"Limpieza profunda: {TempCleaner.FormatBytes(bytes)} liberados" +
+                    (cleanedRegs > 0 ? $" + {cleanedRegs} de registro." : "."));
         }
         catch (OperationCanceledException)
         {

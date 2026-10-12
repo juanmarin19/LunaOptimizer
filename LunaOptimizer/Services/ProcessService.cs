@@ -58,7 +58,9 @@ public static class ProcessService
         "msmpeng", "sgrmbroker", "searchindexer", "spoolsv", "defendersessionhelper",
     };
 
-    private static readonly Dictionary<string, BitmapSource?> _iconCache = new(StringComparer.OrdinalIgnoreCase);
+    // ConcurrentDictionary: GetProcesses corre en Task.Run y el refresco
+    // "Auto 2s" puede solapar dos pasadas, asi que el acceso debe ser seguro.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, BitmapSource?> _iconCache = new(StringComparer.OrdinalIgnoreCase);
 
     /// Hosts de Windows que aunque se puedan cerrar no son aplicaciones del
     /// usuario (los mismos que omite PC Manager), mas este propio programa.
@@ -102,7 +104,7 @@ public static class ProcessService
     /// que no son apps y no tienen ventana. Ventana visible o no se muestra.
     private static bool EsAppVisible(int pid, HashSet<int> winPids) => winPids.Contains(pid);
 
-    public static List<ProcessInfo> GetProcesses(string filter = "", bool onlySafe = true)
+    public static List<ProcessInfo> GetProcesses(string filter = "", bool onlySafe = true, bool withIcons = true)
     {
         var list = new List<ProcessInfo>();
         var winPids = onlySafe ? VisibleWindowPids() : null;
@@ -133,7 +135,7 @@ public static class ProcessService
             string status = "OK";
             try { if (p.Responding == false) status = "No responde"; } catch { }
             BitmapSource? icon = null;
-            if (!string.IsNullOrEmpty(path))
+            if (withIcons && !string.IsNullOrEmpty(path))
                 icon = GetIconCached(path);
             list.Add(new ProcessInfo { Pid = p.Id, Name = name, RamMB = ram, Status = status, Path = path, Icon = icon, CanKill = canKill });
             try { p.Dispose(); } catch { }
@@ -145,7 +147,7 @@ public static class ProcessService
     {
         if (_iconCache.TryGetValue(exePath, out var cached)) return cached;
         var bmp = IconHelper.Extract(exePath);
-        if (_iconCache.Count < 500) _iconCache[exePath] = bmp;
+        if (_iconCache.Count < 500) _iconCache.TryAdd(exePath, bmp);
         return bmp;
     }
 
@@ -158,7 +160,9 @@ public static class ProcessService
         // proceso con ventana o app empaquetada) y luego agrupa TODOS los
         // procesos de esos nombres, como hace PC Manager (Brave 2.3 GB = todos
         // los brave.exe, no solo el que tiene ventana).
-        var all = GetProcesses(filter, onlySafe: false);
+        // withIcons:false: no extraemos el icono de cientos de procesos que
+        // luego se descartan; solo el de la app que queda en cada grupo.
+        var all = GetProcesses(filter, onlySafe: false, withIcons: false);
         if (onlySafe)
         {
             var winPids = VisibleWindowPids();
@@ -184,7 +188,7 @@ public static class ProcessService
                     Pids = string.Join(", ", pids.Take(8)) + (pids.Count > 8 ? "..." : ""),
                     Status = g.Any(p => p.Status != "OK") ? "No responde" : "OK",
                     Path = first.Path,
-                    Icon = first.Icon,
+                    Icon = string.IsNullOrEmpty(first.Path) ? null : GetIconCached(first.Path),
                     CanKill = g.All(p => p.CanKill),
                     PidList = pids,
                 };

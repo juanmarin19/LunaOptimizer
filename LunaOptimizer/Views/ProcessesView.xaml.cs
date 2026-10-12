@@ -9,6 +9,8 @@ public partial class ProcessesView : UserControl
 {
     private System.Windows.Threading.DispatcherTimer? _timer;
     private System.Windows.Threading.DispatcherTimer? _filterTimer;
+    private volatile bool _refreshing;
+    private volatile bool _pendingRefresh;
     private readonly Action<string>? _status;
 
     public ProcessesView(Action<string>? status = null)
@@ -23,6 +25,8 @@ public partial class ProcessesView : UserControl
         // El evento Checked de "Agrupar" se dispara durante InitializeComponent,
         // antes de que existan las columnas del DataGrid: en ese caso no hacemos nada.
         if (ColPids is null || ColName is null || ColRam is null) return;
+        if (_refreshing) { _pendingRefresh = true; return; }   // Auto 2s: no solapar; reprocesar al terminar
+        _refreshing = true;
         try
         {
             var filter = TxtFilter?.Text ?? "";
@@ -59,6 +63,11 @@ public partial class ProcessesView : UserControl
             // Nunca dejar la lista vacia sin decir por que.
             TxtCount.Text = "Error: " + ex.Message;
         }
+        finally
+        {
+            _refreshing = false;
+            if (_pendingRefresh) { _pendingRefresh = false; _ = RefreshAsync(); }
+        }
     }
 
     /// Mensaje centrado cuando la lista no tiene nada que mostrar.
@@ -81,10 +90,15 @@ public partial class ProcessesView : UserControl
 
     private void TxtFilter_TextChanged(object sender, TextChangedEventArgs e)
     {
-        _filterTimer?.Stop();
-        _filterTimer = new System.Windows.Threading.DispatcherTimer
-        { Interval = TimeSpan.FromMilliseconds(300) };
-        _filterTimer.Tick += (_, _) => { _filterTimer.Stop(); Refresh(); };
+        // Un unico timer reutilizado (antes se creaba uno por tecla, dejando
+        // handlers colgando). Stop+Start = reinicia la cuenta (debounce).
+        if (_filterTimer is null)
+        {
+            _filterTimer = new System.Windows.Threading.DispatcherTimer
+            { Interval = TimeSpan.FromMilliseconds(300) };
+            _filterTimer.Tick += (_, _) => { _filterTimer!.Stop(); Refresh(); };
+        }
+        _filterTimer.Stop();
         _filterTimer.Start();
     }
     private void BtnRefresh_Click(object sender, RoutedEventArgs e) => Refresh();

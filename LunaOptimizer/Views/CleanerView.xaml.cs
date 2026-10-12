@@ -77,7 +77,7 @@ public partial class CleanerView : UserControl
                 vm.Size = r.FormattedSize; vm.Result = r;
                 total += r.TotalBytes;
             }
-            catch { vm.Size = "-"; }
+            catch (Exception ex) { AppLog.Error(ex, "Analizando " + vm.Name); vm.Size = "-"; }
             done++;
             TxtStatus.Text = $"Analizando tamanos... {done}/{vms.Count}";
         }

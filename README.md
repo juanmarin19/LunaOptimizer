@@ -1,7 +1,8 @@
 # LunaOptimizer ⚡
 
 Optimizador de PC para **Windows 10/11** con interfaz estilo *Microsoft PC Manager*.
-Una sola ventana de 456×664 con tres pestañas: **Inicio**, **Procesos** y **Limpieza**.
+Una sola ventana de 456×664 con seis pestañas: **Inicio**, **Procesos**, **Limpieza**,
+**Juegos**, **Salud** y **Apps**.
 
 - **Sin instalación**: es un `.exe` único y autocontenido (no hace falta tener .NET instalado).
 - **Todo en español**, sin telemetría, sin anuncios, sin suscripciones.
@@ -46,7 +47,7 @@ usa *Microsoft PC Manager*. Los procesos de fondo (`svchost`, `SearchHost`,
 | Control | Qué hace |
 |---|---|
 | **Actualizar** | Vuelve a leer la lista. |
-| **Finalizar** (en cada fila) | Cierra ese programa entero (todos sus procesos). Hay confirmación previa. |
+| **Cerrar** (en cada fila) | Cierra ese programa entero (todos sus procesos). No pide confirmación: el resultado se informa en la barra de estado. Los procesos protegidos muestran el botón desactivado. |
 | **Ubicación** | Abre la carpeta donde está el `.exe` del proceso seleccionado. |
 | **Agrupar** | Una fila por programa con todos sus PIDs y su RAM total (activado por defecto). |
 | **Auto 2s** | Refresca la lista sola cada dos segundos. |
@@ -95,6 +96,33 @@ El único botón es **Limpieza profunda**, que abre la pantalla de análisis est
 
 > La base de reglas viaja **dentro del propio `.exe`**, así que funciona en
 > cualquier PC sin archivos sueltos.
+
+---
+
+### 🎮 Juegos
+
+Prepara el equipo para jugar en un clic (pide confirmación): cierra tus
+aplicaciones abiertas, libera la RAM (working sets, lista modificada, standby y
+caché) y borra temporales. Mientras se ejecuta puedes cancelar el borrado de
+temporales con el botón **Cancelar**. Al terminar muestra un resumen con las apps
+cerradas, la RAM liberada y los temporales eliminados.
+
+### 🩺 Salud
+
+Revisa servicios y ajustes de Windows que afectan al rendimiento en juegos
+(SysMain, telemetría, servicios de Xbox, Game DVR, Modo juego…). Cada fila tiene un
+botón **Optimizar** / **Restaurar**: al optimizar se guarda el estado original, y
+**Restaurar lo devuelve exactamente como estaba** (tipo de arranque del servicio y
+valores de registro). El estado se guarda en
+`%LOCALAPPDATA%\LunaOptimizer\salud.estado`. También hay **Optimizar todo**.
+
+### 🗑️ Apps
+
+Lista las aplicaciones instaladas (registro de 64 y 32 bits, equipo y usuario) con
+buscador y botón **Desinstalar**. Usa el desinstalador de Windows (`msiexec` para
+MSI; `UninstallString`/`QuietUninstallString` para el resto) y borra la entrada del
+registro si queda huérfana. Los códigos que piden reiniciar (3010/1641) se tratan
+como éxito.
 
 ---
 

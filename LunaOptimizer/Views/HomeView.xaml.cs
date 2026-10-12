@@ -16,6 +16,7 @@ public partial class HomeView : UserControl
     private readonly Action<string> _status;
     private DateTime? _lastClean;
     private bool _tempBusy;
+    private CancellationTokenSource? _cts;
 
     // Historial de uso de RAM: 20 muestras cada 3 s = 60 segundos.
     private readonly double[] _hist = new double[20];
@@ -134,16 +135,8 @@ public partial class HomeView : UserControl
         _tempBusy = true;
         try
         {
-            long bytes = await Task.Run(() =>
-            {
-                long sum = 0;
-                foreach (var f in TempCleaner.SafeEnumerateFiles(Path.GetTempPath()))
-                {
-                    long len = TempCleaner.SizeOf(f);
-                    if (len > 0) sum += len;
-                }
-                return sum;
-            });
+            // Igual que la limpieza rapida: TEMP de TODOS los usuarios, no solo el actual.
+            var (_, bytes) = await Task.Run(() => TempCleaner.MeasureTemp());
             TxtTempVal.Text = TempCleaner.FormatBytes(bytes);
         }
         catch { TxtTempVal.Text = "-"; }
@@ -154,13 +147,15 @@ public partial class HomeView : UserControl
     {
         BtnBoost.IsEnabled = false;
         BarAct.Visibility = Visibility.Visible;
+        BtnCancel.Visibility = Visibility.Visible;
         TxtHint.Text = "Optimizando memoria...";
+        _cts = new CancellationTokenSource();
         try
         {
             var boost = await Task.Run(() => MemoryBoost.Boost());
             TxtHint.Text = "Borrando temporales...";
             var prog = new Progress<string>(s => TxtHint.Text = s);
-            var r = await TempCleaner.QuickCleanAsync(prog);
+            var r = await TempCleaner.QuickCleanAsync(prog, _cts.Token);
 
             TxtHint.Text = ResumenBoost(boost.trimmed, boost.usoAntesMB, boost.usoDespuesMB, r) + $" ({DateTime.Now:HH:mm}).";
             _status($"Mejora de rendimiento: RAM en uso {boost.usoAntesMB / 1024.0:F1} GB -> " +
@@ -168,12 +163,22 @@ public partial class HomeView : UserControl
             UpdateMemory();
             _ = UpdateTempAsync();
         }
+        catch (OperationCanceledException) { TxtHint.Text = "Cancelado."; }
         catch (Exception ex) { TxtHint.Text = "Error: " + ex.Message; }
         finally
         {
+            _cts?.Dispose();
+            _cts = null;
             BarAct.Visibility = Visibility.Collapsed;
+            BtnCancel.Visibility = Visibility.Collapsed;
             BtnBoost.IsEnabled = true;
         }
+    }
+
+    /// Cancela la fase cancelable (borrado de temporales) de la operacion en curso.
+    private void BtnCancel_Click(object sender, RoutedEventArgs e)
+    {
+        try { _cts?.Cancel(); TxtHint.Text = "Cancelando..."; } catch { }
     }
 
     /// "N procesos · RAM en uso 9,2 GB -> 6,7 GB (−2,5 GB) · X temporales (Y MB) · Z al reiniciar"
@@ -201,11 +206,13 @@ public partial class HomeView : UserControl
         BtnQuickClean.IsEnabled = false;
         BtnBoost.IsEnabled = false;
         BarAct.Visibility = Visibility.Visible;
+        BtnCancel.Visibility = Visibility.Visible;
+        _cts = new CancellationTokenSource();
         var prog = new Progress<string>(s => TxtHint.Text = s);
         try
         {
             var (closed, failedClose) = await Task.Run(() => ProcessService.CloseAllApps(prog));
-            var r = await TempCleaner.QuickCleanAsync(prog);
+            var r = await TempCleaner.QuickCleanAsync(prog, _cts.Token);
             var boost = await Task.Run(() => MemoryBoost.Boost());
 
             _lastClean = DateTime.Now;
@@ -222,10 +229,14 @@ public partial class HomeView : UserControl
             UpdateApps();
             _ = UpdateTempAsync();
         }
+        catch (OperationCanceledException) { TxtHint.Text = "Cancelado."; }
         catch (Exception ex) { TxtHint.Text = "Error: " + ex.Message; }
         finally
         {
+            _cts?.Dispose();
+            _cts = null;
             BarAct.Visibility = Visibility.Collapsed;
+            BtnCancel.Visibility = Visibility.Collapsed;
             BtnQuickClean.IsEnabled = true;
             BtnBoost.IsEnabled = true;
         }

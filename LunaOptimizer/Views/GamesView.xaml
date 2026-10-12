@@ -13,7 +13,7 @@
             <StackPanel>
                 <TextBlock Text="Modo juego" FontSize="15" FontWeight="Bold"
                            Foreground="{DynamicResource B_Text}"/>
-                <TextBlock Text="Cierra apps en segundo plano, libera RAM y purga la cache de memoria en un solo clic. Lo minimo para jugar sin reiniciar."
+                <TextBlock Text="Cierra tus aplicaciones abiertas, libera RAM y purga la cache de memoria en un solo clic. Lo minimo para jugar sin reiniciar."
                            FontSize="11" Foreground="{DynamicResource B_Sub}" TextWrapping="Wrap" Margin="0,6,0,0"/>
                 <Button x:Name="BtnGame" Content="Preparar para jugar" HorizontalAlignment="Left" Margin="0,12,0,0"
                         Click="BtnGame_Click" Style="{StaticResource PrimaryBtn}"/>
@@ -24,6 +24,8 @@
         <Border Grid.Row="1" Style="{StaticResource Card}">
             <StackPanel>
                 <ProgressBar x:Name="BarGame" Height="6" Minimum="0" Maximum="100" Margin="0,0,0,6"/>
+                <Button x:Name="BtnCancelGame" Content="Cancelar" Click="BtnCancelGame_Click" Visibility="Collapsed"
+                        HorizontalAlignment="Left" Margin="0,0,0,6" Padding="12,5" FontSize="12"/>
                 <TextBlock x:Name="TxtGame" Text="Listo." FontSize="11" Foreground="{DynamicResource B_Sub}" TextWrapping="Wrap"/>
             </StackPanel>
         </Border>

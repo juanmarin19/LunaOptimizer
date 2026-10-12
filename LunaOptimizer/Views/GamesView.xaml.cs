@@ -12,6 +12,7 @@ namespace LunaOptimizer.Views;
 public partial class GamesView : UserControl
 {
     private readonly Action<string>? _status;
+    private CancellationTokenSource? _cts;
 
     public GamesView(Action<string>? status = null)
     {
@@ -23,7 +24,7 @@ public partial class GamesView : UserControl
     {
         var confirm = MessageBox.Show(
             "Preparar para jugar:\n\n" +
-            "  - Se cierran tus aplicaciones en segundo plano (navegador, Discord...)\n" +
+            "  - Se cierran tus aplicaciones abiertas (navegador, Discord...)\n" +
             "  - Se libera la memoria RAM (working sets, standby, cache)\n" +
             "  - Se borran temporales del sistema\n\n" +
             "Guarda lo que tengas abierto. Continuar?",
@@ -32,12 +33,14 @@ public partial class GamesView : UserControl
 
         BtnGame.IsEnabled = false;
         BarGame.Value = 0;
+        BtnCancelGame.Visibility = Visibility.Visible;
+        _cts = new CancellationTokenSource();
         var prog = new Progress<string>(s => TxtGame.Text = s);
 
         try
         {
             // 1) cerrar apps de fondo (reutiliza el cierre "suave" de la limpieza rapida)
-            TxtGame.Text = "Cerrando aplicaciones en segundo plano...";
+            TxtGame.Text = "Cerrando aplicaciones abiertas...";
             BarGame.Value = 15;
             var (closed, failed) = await Task.Run(() => ProcessService.CloseAllApps(prog));
 
@@ -49,7 +52,7 @@ public partial class GamesView : UserControl
             // 3) temporales
             TxtGame.Text = "Borrando temporales...";
             BarGame.Value = 75;
-            var r = await TempCleaner.QuickCleanAsync(prog);
+            var r = await TempCleaner.QuickCleanAsync(prog, _cts.Token);
 
             BarGame.Value = 100;
             long baja = Math.Max(0, boost.usoAntesMB - boost.usoDespuesMB);
@@ -62,13 +65,26 @@ public partial class GamesView : UserControl
             TxtGame.Text = "Equipo preparado.";
             _status?.Invoke($"Modo juego: -{baja / 1024.0:F1} GB de RAM, {r.FilesDeleted} temporales.");
         }
+        catch (OperationCanceledException)
+        {
+            TxtGame.Text = "Cancelado.";
+        }
         catch (Exception ex)
         {
             TxtGame.Text = "Error: " + ex.Message;
         }
         finally
         {
+            _cts?.Dispose();
+            _cts = null;
+            BtnCancelGame.Visibility = Visibility.Collapsed;
             BtnGame.IsEnabled = true;
         }
+    }
+
+    /// Cancela la fase cancelable (borrado de temporales) del modo juego.
+    private void BtnCancelGame_Click(object sender, RoutedEventArgs e)
+    {
+        try { _cts?.Cancel(); TxtGame.Text = "Cancelando..."; } catch { }
     }
 }

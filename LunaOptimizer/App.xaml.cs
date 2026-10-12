@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Threading;
 using LunaOptimizer.Services;
 
@@ -10,10 +9,10 @@ namespace LunaOptimizer;
 /// </summary>
 public partial class App : Application
 {
-    private static readonly string LogDir =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LunaOptimizer");
-
-    private static readonly string LogFile = Path.Combine(LogDir, "errores.log");
+    /// true una vez que la ventana principal se esta cerrando: durante el apagado
+    /// no tiene sentido registrar/avisar de errores (p. ej. el DllNotFound que
+    /// algunos modulos nativos lanzan al descargarse de la memoria).
+    internal static volatile bool Cerrando;
 
     private Mutex? _instanceMutex;
 
@@ -69,8 +68,9 @@ public partial class App : Application
     /// Error en el hilo de UI: se registra y se continua (no cerrar la app).
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        WriteLog(e.Exception);
         e.Handled = true;
+        if (Cerrando) return;
+        WriteLog(e.Exception);
         try
         {
             MessageBox.Show(
@@ -83,6 +83,7 @@ public partial class App : Application
     /// Excepcion no controlada fuera del hilo de UI: solo registrar.
     private void OnDomainUnhandled(object sender, UnhandledExceptionEventArgs e)
     {
+        if (Cerrando) return;
         if (e.ExceptionObject is Exception ex) WriteLog(ex);
     }
 
@@ -93,14 +94,5 @@ public partial class App : Application
         e.SetObserved();
     }
 
-    private static void WriteLog(Exception ex)
-    {
-        try
-        {
-            Directory.CreateDirectory(LogDir);
-            File.AppendAllText(LogFile,
-                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]{Environment.NewLine}{ex}{Environment.NewLine}{new string('-', 60)}{Environment.NewLine}");
-        }
-        catch { }
-    }
+    private static void WriteLog(Exception ex) => AppLog.Error(ex);
 }

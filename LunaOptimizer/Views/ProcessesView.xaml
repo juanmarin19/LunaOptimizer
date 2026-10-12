@@ -80,6 +80,7 @@
                                             Style="{StaticResource {x:Type Button}}" Padding="9,4" FontSize="11"
                                             Background="{DynamicResource B_Red}" Foreground="{DynamicResource B_OnRed}"
                                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            IsEnabled="{Binding CanKill}"
                                             ToolTip="Cerrar este programa"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>

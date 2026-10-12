@@ -118,6 +118,7 @@
                 </Border>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Style="{StaticResource CaptionBtn}" Click="BtnTheme_Click"
+                            AutomationProperties.Name="Cambiar tema claro/oscuro"
                             ToolTip="Cambiar tema claro/oscuro">
                         <Path x:Name="ThemeIcon" Width="15" Height="15" Stretch="Uniform"
                               HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -125,8 +126,10 @@
                               StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                               Data="{StaticResource I.Moon}"/>
                     </Button>
-                    <Button Style="{StaticResource CaptionBtn}" Content="&#x2500;" Click="BtnMin_Click" ToolTip="Minimizar"/>
-                    <Button Style="{StaticResource CloseBtn}" Content="&#x2715;" Click="BtnClose_Click" ToolTip="Cerrar"/>
+                    <Button Style="{StaticResource CaptionBtn}" Content="&#x2500;" Click="BtnMin_Click"
+                            AutomationProperties.Name="Minimizar" ToolTip="Minimizar"/>
+                    <Button Style="{StaticResource CloseBtn}" Content="&#x2715;" Click="BtnClose_Click"
+                            AutomationProperties.Name="Cerrar" ToolTip="Cerrar"/>
                 </StackPanel>
             </Grid>
 

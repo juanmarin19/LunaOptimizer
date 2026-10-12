@@ -19,6 +19,7 @@ public class InstalledApp
 
     // donde vive la entrada, para poder borrarla tras desinstalar
     public RegistryHive? Hive { get; set; }
+    public RegistryView View { get; set; } = RegistryView.Default; // vista con la que se leyo, para borrar en la misma
     public string KeyPath { get; set; } = "";      // sub-key dentro del hive
     public string KeyName { get; set; } = "";      // nombre de la sub-key
 
@@ -93,6 +94,7 @@ public static class AppUninstallerService
                             DisplayIcon = app.GetValue("DisplayIcon")?.ToString() ?? "",
                             InstallLocation = app.GetValue("InstallLocation")?.ToString() ?? "",
                             Hive = hive,
+                            View = view,
                             KeyPath = sub,
                             KeyName = subName,
                             IsMsi = isMsi,
@@ -150,11 +152,15 @@ public static class AppUninstallerService
 
             using var p = System.Diagnostics.Process.Start(psi);
             if (p is null) return (-1, "no se pudo iniciar");
-            p.WaitForExit(120000);   // tope 2 min
-            return (p.ExitCode, p.ExitCode == 0 ? "" : $"codigo {p.ExitCode}");
+            if (!p.WaitForExit(120000)) return (-1, "el desinstalador sigue en ejecucion (timeout de 2 min)");
+            int code = p.ExitCode;
+            // 0 = OK; 3010 = OK pero requiere reiniciar; 1641 = OK y ya reinicio.
+            if (code is 0 or 3010 or 1641) return (code, "");
+            return (code, $"codigo {code}");
         }
         catch (Exception ex)
         {
+            AppLog.Error(ex, "Desinstalando " + app.Name);
             return (-1, ex.Message);
         }
     }
@@ -166,7 +172,7 @@ public static class AppUninstallerService
         {
             if (app.Hive is null || string.IsNullOrWhiteSpace(app.KeyPath) || string.IsNullOrWhiteSpace(app.KeyName))
                 return false;
-            using var baseKey = RegistryKey.OpenBaseKey(app.Hive.Value, RegistryView.Default);
+            using var baseKey = RegistryKey.OpenBaseKey(app.Hive.Value, app.View);
             using var parent = baseKey.OpenSubKey(app.KeyPath, writable: true);
             parent?.DeleteSubKeyTree(app.KeyName, throwOnMissingSubKey: false);
             return true;

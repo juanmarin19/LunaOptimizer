@@ -28,6 +28,7 @@ public sealed class DeepCatResult
     public Dictionary<string, long> Sizes { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public List<(CleanerEntry Entry, ScanResult Scan)> Apps { get; set; } = new();
     public long Bytes { get; set; }
+    public int RegistryCount { get; set; }   // claves/valores de registro a borrar (no cuentan bytes)
     public bool IsRecycle { get; set; }
     public bool IsApps { get; set; }
 }
@@ -51,10 +52,10 @@ public static class DeepCleanService
     public static Task<List<DeepCatResult>> ScanAsync(IProgress<DeepScanUpdate>? progress, CancellationToken token)
         => Task.Run(() => Scan(progress, token), token);
 
-    public static (int files, long bytes) Clean(List<DeepCatResult> cats, IProgress<DeepScanUpdate>? progress, CancellationToken token)
+    public static (int files, long bytes, int regs) Clean(List<DeepCatResult> cats, IProgress<DeepScanUpdate>? progress, CancellationToken token)
     {
         var ctx = new Ctx(progress);
-        int files = 0;
+        int files = 0, regs = 0;
         long bytes = 0;
         for (int i = 0; i < cats.Count; i++)
         {
@@ -97,7 +98,11 @@ public static class DeepCleanService
                     if (catFiles % 200 == 0)
                         ctx.Report(DeepPhase.Clean, i, CatState.Cleaning, Path.GetFileName(f), catBytes, Math.Min(0.99, (double)catFiles / target));
                 }
-                if (cat.IsApps) RemoveSelfCleanup(cat);
+                if (cat.IsApps)
+                {
+                    RemoveSelfCleanup(cat);
+                    regs += DeleteRegistry(cat);
+                }
                 else EmptyDirs(cat);
             }
 
@@ -106,11 +111,31 @@ public static class DeepCleanService
             ctx.Done++;
             ctx.Report(DeepPhase.Clean, i, CatState.Done, "", catBytes, 1);
         }
-        LastClean = DateTime.Now;
-        return (files, bytes);
+        if (!token.IsCancellationRequested) LastClean = DateTime.Now;
+        return (files, bytes, regs);
     }
 
+    // El ini (1,8 MB) se lee una vez y se reutiliza: antes se recargaba en cada
+    // analisis (pestana Limpieza + limpieza profunda).
+    private static readonly object _winapp2Lock = new();
+    private static string? _winapp2Cache;
+    private static bool _winapp2Loaded;
+
     public static string? LoadWinapp2()
+    {
+        if (_winapp2Loaded) return _winapp2Cache;
+        lock (_winapp2Lock)
+        {
+            if (!_winapp2Loaded)
+            {
+                _winapp2Cache = LoadWinapp2Core();
+                _winapp2Loaded = true;
+            }
+            return _winapp2Cache;
+        }
+    }
+
+    private static string? LoadWinapp2Core()
     {
         try
         {
@@ -242,7 +267,7 @@ public static class DeepCleanService
             ScanResult r;
             try { r = ScanEngine.AnalyzeAsync(e, null, token).GetAwaiter().GetResult(); }
             catch (OperationCanceledException) { return; }
-            catch { i++; continue; }
+            catch (Exception ex) { AppLog.Error(ex, "Analizando regla: " + e.Name); i++; continue; }
 
             foreach (var f in r.FilesToDelete)
             {
@@ -254,6 +279,7 @@ public static class DeepCleanService
                 ctx.Total += sz;
                 ctx.Files++;
             }
+            cat.RegistryCount += r.RegistryToDelete.Count;
             cat.Apps.Add((e, r));
             i++;
         }
@@ -297,15 +323,11 @@ public static class DeepCleanService
         var dirs = new List<string>();
         try { dirs.Add(Path.GetTempPath()); } catch { }
         try { dirs.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Temp")); } catch { }
-        try
+        foreach (var u in TempCleaner.UserDirs())
         {
-            foreach (var u in Directory.GetDirectories(@"C:\Users"))
-            {
-                var t = Path.Combine(u, "AppData", "Local", "Temp");
-                if (Directory.Exists(t)) dirs.Add(t);
-            }
+            var t = Path.Combine(u, "AppData", "Local", "Temp");
+            if (Directory.Exists(t)) dirs.Add(t);
         }
-        catch { }
         return dirs.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 
@@ -328,15 +350,11 @@ public static class DeepCleanService
     private static List<string> TraceDirs()
     {
         var dirs = new List<string>();
-        try
+        foreach (var u in TempCleaner.UserDirs())
         {
-            foreach (var u in Directory.GetDirectories(@"C:\Users"))
-            {
-                var rec = Path.Combine(u, "AppData", "Roaming", "Microsoft", "Windows", "Recent");
-                if (Directory.Exists(rec)) dirs.Add(rec);
-            }
+            var rec = Path.Combine(u, "AppData", "Roaming", "Microsoft", "Windows", "Recent");
+            if (Directory.Exists(rec)) dirs.Add(rec);
         }
-        catch { }
         return dirs;
     }
 
@@ -363,6 +381,21 @@ public static class DeepCleanService
             }
         }
         catch { }
+    }
+
+    /// Borra las claves/valores de registro que Winapp2 marca (RegKeyN) para las
+    /// apps analizadas. No cuentan como bytes, pero forman parte de la limpieza.
+    /// Devuelve cuantas entradas se intentaron borrar (para el resumen).
+    private static int DeleteRegistry(DeepCatResult cat)
+    {
+        int n = 0;
+        foreach (var (_, scan) in cat.Apps)
+        {
+            n += scan.RegistryToDelete.Count;
+            try { ScanEngine.DeleteRegistry(scan); }
+            catch (Exception ex) { AppLog.Error(ex, "Borrando registro (limpieza profunda)"); }
+        }
+        return n;
     }
 
     private sealed class Ctx

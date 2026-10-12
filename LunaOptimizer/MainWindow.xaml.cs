@@ -14,28 +14,31 @@ namespace LunaOptimizer;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private readonly HomeView _home;
-    private readonly ProcessesView _processes;
-    private readonly CleanerView _cleaner;
-    private readonly DeepCleanView _deep;
-    private readonly GamesView _games;
-    private readonly HealthView _health;
-    private readonly AppsView _apps;
+    // Vistas creadas bajo demanda (lazy): no se instancia una pestana que el
+    // usuario nunca abre, asi el arranque y el primer pintado son mas rapidos.
+    private HomeView? _home;
+    private ProcessesView? _processes;
+    private CleanerView? _cleaner;
+    private DeepCleanView? _deep;
+    private GamesView? _games;
+    private HealthView? _health;
+    private AppsView? _apps;
+
+    private HomeView Home => _home ??= new HomeView(Navigate, s => TxtStatus.Text = s);
+    private ProcessesView Processes => _processes ??= new ProcessesView(s => TxtStatus.Text = s);
+    private CleanerView Cleaner => _cleaner ??= new CleanerView(Navigate);
+    private DeepCleanView Deep => _deep ??= new DeepCleanView(Navigate, s => TxtStatus.Text = s);
+    private GamesView Games => _games ??= new GamesView(s => TxtStatus.Text = s);
+    private HealthView Health => _health ??= new HealthView(s => TxtStatus.Text = s);
+    private AppsView Apps => _apps ??= new AppsView(s => TxtStatus.Text = s);
+
     private readonly DispatcherTimer _memTimer;
 
     public MainWindow()
     {
         InitializeComponent();
 
-        _home = new HomeView(Navigate, s => TxtStatus.Text = s);
-        _processes = new ProcessesView(s => TxtStatus.Text = s);
-        _cleaner = new CleanerView(Navigate);
-        _deep = new DeepCleanView(Navigate, s => TxtStatus.Text = s);
-        _games = new GamesView(s => TxtStatus.Text = s);
-        _health = new HealthView(s => TxtStatus.Text = s);
-        _apps = new AppsView(s => TxtStatus.Text = s);
-
-        Host.Content = _home;
+        Host.Content = Home;
 
         // Esquinas redondeadas (Win11) y modo oscuro/claro del marco DWM
         SourceInitialized += (_, _) =>
@@ -46,12 +49,14 @@ public partial class MainWindow : Window
             ActualizarIconoTema();
         };
 
+        // La version sale SOLO del ensamblado (que la toma de <Version> en el csproj):
+        // asi no hay que mantener el numero en varios lugares.
         try
         {
             var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-            TxtVersion.Text = "v" + (v is null ? "1.1.0" : $"{v.Major}.{v.Minor}.{v.Build}");
+            TxtVersion.Text = v is null ? "v?" : $"v{v.Major}.{v.Minor}.{v.Build}";
         }
-        catch { TxtVersion.Text = "v1.1.0"; }
+        catch { TxtVersion.Text = "v?"; }
 
         RefreshMem();
         _memTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
@@ -106,6 +111,7 @@ public partial class MainWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         base.OnClosed(e);
+        App.Cerrando = true;   // a partir de aqui, no registrar errores de apagado
         try { Application.Current.Shutdown(); } catch { }
         Environment.Exit(0);
     }
@@ -136,29 +142,29 @@ public partial class MainWindow : Window
         NavGames.IsChecked = false;
         NavHealth.IsChecked = false;
         NavApps.IsChecked = false;
-        _deep.BackTarget = back;
-        Host.Content = _deep;
+        Deep.BackTarget = back;
+        Host.Content = Deep;
         if (TxtTitle is not null) TxtTitle.Text = "Limpieza profunda";
         if (TxtStatus is not null) TxtStatus.Text = "Limpieza profunda.";
-        _deep.OnShown();
+        Deep.OnShown();
         AnimateIn();
     }
 
     private void NavHome_Checked(object sender, RoutedEventArgs e)
     {
         if (Host is null) return;
-        Host.Content = _home;
+        Host.Content = Home;
         if (TxtTitle is not null) TxtTitle.Text = "Inicio";
         if (TxtStatus is not null) TxtStatus.Text = "Inicio.";
-        _home.Refresh();
+        Home.Refresh();
         AnimateIn();
     }
 
     private void NavProc_Checked(object sender, RoutedEventArgs e)
     {
         if (Host is null) return;
-        Host.Content = _processes;
-        _processes.Refresh();
+        Host.Content = Processes;
+        Processes.Refresh();
         if (TxtTitle is not null) TxtTitle.Text = "Procesos";
         if (TxtStatus is not null) TxtStatus.Text = "Procesos.";
         AnimateIn();
@@ -167,7 +173,7 @@ public partial class MainWindow : Window
     private void NavClean_Checked(object sender, RoutedEventArgs e)
     {
         if (Host is null) return;
-        Host.Content = _cleaner;
+        Host.Content = Cleaner;
         if (TxtTitle is not null) TxtTitle.Text = "Limpieza";
         if (TxtStatus is not null) TxtStatus.Text = "Limpieza.";
         AnimateIn();
@@ -176,7 +182,7 @@ public partial class MainWindow : Window
     private void NavGames_Checked(object sender, RoutedEventArgs e)
     {
         if (Host is null) return;
-        Host.Content = _games;
+        Host.Content = Games;
         if (TxtTitle is not null) TxtTitle.Text = "Juegos";
         if (TxtStatus is not null) TxtStatus.Text = "Modo juego.";
         AnimateIn();
@@ -185,8 +191,8 @@ public partial class MainWindow : Window
     private void NavHealth_Checked(object sender, RoutedEventArgs e)
     {
         if (Host is null) return;
-        Host.Content = _health;
-        _health.Refresh();
+        Host.Content = Health;
+        Health.Refresh();
         if (TxtTitle is not null) TxtTitle.Text = "Salud";
         if (TxtStatus is not null) TxtStatus.Text = "Salud del sistema.";
         AnimateIn();
@@ -195,8 +201,8 @@ public partial class MainWindow : Window
     private void NavApps_Checked(object sender, RoutedEventArgs e)
     {
         if (Host is null) return;
-        Host.Content = _apps;
-        _apps.Refresh();
+        Host.Content = Apps;
+        Apps.Refresh();
         if (TxtTitle is not null) TxtTitle.Text = "Apps";
         if (TxtStatus is not null) TxtStatus.Text = "Apps instaladas.";
         AnimateIn();

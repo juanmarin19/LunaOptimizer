@@ -100,6 +100,8 @@
                     <ProgressBar x:Name="BarAct" Height="4" Margin="4,10,4,0" IsIndeterminate="True"
                                  Visibility="Collapsed" Foreground="{DynamicResource B_Accent}"
                                  Background="{DynamicResource B_Track}" BorderThickness="0"/>
+                    <Button x:Name="BtnCancel" Content="Cancelar" Click="BtnCancel_Click" Visibility="Collapsed"
+                            HorizontalAlignment="Left" Margin="4,8,4,0" Padding="12,5" FontSize="12"/>
                     <TextBlock x:Name="TxtHint" Text="" FontSize="11" Foreground="{DynamicResource B_Sub}"
                                Margin="4,8,4,0" TextWrapping="Wrap"/>
                 </StackPanel>

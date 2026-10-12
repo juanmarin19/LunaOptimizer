@@ -10,20 +10,38 @@ public static class TempCleaner
 {
     public record CleanResult(int FilesDeleted, long BytesFreed, int ScheduledReboot, long ScheduledBytes, int Errors, List<string> Log);
 
+    /// Raiz de los perfiles de usuario, sin hardcodear "C:\Users": se deduce del
+    /// perfil actual (su carpeta padre) y si no, de la unidad de Windows.
+    public static string UsersRoot()
+    {
+        try
+        {
+            var me = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var parent = Directory.GetParent(me);
+            if (parent is not null && parent.Exists) return parent.FullName;
+        }
+        catch { }
+        var root = Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.Windows)) ?? @"C:\";
+        return Path.Combine(root, "Users");
+    }
+
+    /// Carpetas de perfil existentes (una por usuario).
+    public static string[] UserDirs()
+    {
+        try { return Directory.GetDirectories(UsersRoot()); }
+        catch { return Array.Empty<string>(); }
+    }
+
     /// TEMP de todos los usuarios (mismo criterio que BuildSafeDirs).
     public static string[] TempDirs()
     {
         var dirs = new List<string> { Path.GetTempPath() };
-        try
+        foreach (var u in UserDirs())
         {
-            foreach (var u in Directory.GetDirectories(@"C:\Users"))
-            {
-                var t = Path.Combine(u, "AppData", "Local", "Temp");
-                if (Directory.Exists(t)) dirs.Add(t);
-            }
+            var t = Path.Combine(u, "AppData", "Local", "Temp");
+            if (Directory.Exists(t)) dirs.Add(t);
         }
-        catch { }
-        return dirs.ToArray();
+        return dirs.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
     }
 
     /// Tamano real de %TEMP% (recorrido completo, sin topes artificiales).
@@ -47,37 +65,59 @@ public static class TempCleaner
 
     private const int MOVEFILE_DELAY_UNTIL_REBOOT = 0x4;
 
+    /// Lee PendingFileRenameOperations (REG_MULTI_SZ: pares origen/destino) para
+    /// NO volver a programar el MISMO archivo en cada limpieza. Sin esto la lista
+    /// crecia indefinidamente (mismo .tmp programado una y otra vez) y el arranque
+    /// se volvia mas lento con el tiempo.
+    private static HashSet<string> LeerProgramadosParaReinicio()
+    {
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                @"SYSTEM\CurrentControlSet\Control\Session Manager");
+            if (key?.GetValue("PendingFileRenameOperations") is string[] entradas)
+                for (int i = 0; i + 1 < entradas.Length; i += 2)
+                    if (!string.IsNullOrEmpty(entradas[i])) set.Add(ToNtPath(entradas[i]));
+        }
+        catch { }
+        return set;
+    }
+
+    /// MoveFileEx guarda las rutas como "\??\C:\...": normalizamos igual para
+    /// poder comparar y evitar duplicados.
+    private static string ToNtPath(string path)
+        => path.StartsWith(@"\??\", StringComparison.Ordinal) ? path : @"\??\" + path;
+
     /// Carpetas temporales seguras de TODOS los usuarios (ademas de las ya
     /// existentes). Sin Prefetch, sin papelera, sin WinSxS.
     private static List<string> BuildSafeDirs()
     {
         if (_safeDirs is not null) return _safeDirs;
+        string win = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        string common = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
         var dirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             Path.GetTempPath(),
-            @"C:\Windows\Temp",
+            Path.Combine(win, "Temp"),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp"),
             // Delivery Optimization, miniaturas, logs Windows Update (no tocar WinSxS)
-            @"C:\Windows\SoftwareDistribution\Download",
-            @"C:\Windows\SoftwareDistribution\DeliveryOptimization\Cache",
-            @"C:\ProgramData\Microsoft\Windows\WER",
-            @"C:\ProgramData\Microsoft\Windows\WER\Temp",
+            Path.Combine(win, "SoftwareDistribution", "Download"),
+            Path.Combine(win, "SoftwareDistribution", "DeliveryOptimization", "Cache"),
+            Path.Combine(common, @"Microsoft\Windows\WER"),
+            Path.Combine(common, @"Microsoft\Windows\WER\Temp"),
         };
-        try
+        foreach (var u in UserDirs())
         {
-            foreach (var u in Directory.GetDirectories(@"C:\Users"))
-            {
-                string local = Path.Combine(u, "AppData", "Local");
-                dirs.Add(Path.Combine(local, "Temp"));
-                dirs.Add(Path.Combine(local, @"Microsoft\Windows\INetCache"));
-                dirs.Add(Path.Combine(local, "CrashDumps"));
-                dirs.Add(Path.Combine(local, "D3DSCache"));
-                dirs.Add(Path.Combine(local, @"NVIDIA\GLCache"));
-                dirs.Add(Path.Combine(local, @"NVIDIA\DXCache"));
-                dirs.Add(Path.Combine(local, @"AMD\DxCache"));
-            }
+            string local = Path.Combine(u, "AppData", "Local");
+            dirs.Add(Path.Combine(local, "Temp"));
+            dirs.Add(Path.Combine(local, @"Microsoft\Windows\INetCache"));
+            dirs.Add(Path.Combine(local, "CrashDumps"));
+            dirs.Add(Path.Combine(local, "D3DSCache"));
+            dirs.Add(Path.Combine(local, @"NVIDIA\GLCache"));
+            dirs.Add(Path.Combine(local, @"NVIDIA\DXCache"));
+            dirs.Add(Path.Combine(local, @"AMD\DxCache"));
         }
-        catch { }
         _safeDirs = dirs.ToList();
         return _safeDirs;
     }
@@ -153,6 +193,7 @@ public static class TempCleaner
             // Pasada 2: reintenta los fallidos (puede que se hayan liberado) y
             // los que sigan bloqueados se marcan para borrarlos en el arranque.
             progress?.Report($"Reintentando {fallidos.Count} archivos...");
+            var yaProgramados = LeerProgramadosParaReinicio();
             foreach (var f in fallidos)
             {
                 if (token.IsCancellationRequested) break;
@@ -169,8 +210,17 @@ public static class TempCleaner
                 catch { }
                 try
                 {
-                    if (IsFileLocked(f) && MoveFileEx(f, null, MOVEFILE_DELAY_UNTIL_REBOOT))
-                    { scheduled++; scheduledBytes += len; continue; }
+                    if (IsFileLocked(f))
+                    {
+                        string nt = ToNtPath(f);
+                        if (yaProgramados.Contains(nt)) continue; // ya se borrara en el arranque
+                        if (MoveFileEx(f, null, MOVEFILE_DELAY_UNTIL_REBOOT))
+                        {
+                            yaProgramados.Add(nt);
+                            scheduled++; scheduledBytes += len;
+                            continue;
+                        }
+                    }
                 }
                 catch { }
                 errors++;
