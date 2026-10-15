@@ -209,10 +209,9 @@ public static class ScanEngine
         try { return key.OpenSubKey(name); } catch { return null; }
     }
 
-    /// Ramas del registro que NUNCA se borran aunque una regla (mal formada) lo
-    /// pida: son la columna vertebral de Windows. Solo aplica al borrado de la
-    /// clave completa; borrar un VALOR concreto si se permite (p. ej. una entrada
-    /// de "Run").
+    /// Claves EXACTAS que NUNCA se borran aunque una regla (mal formada) lo pida:
+    /// son la columna vertebral de Windows. No se protege su subarbol porque
+    /// debajo hay limpieza legitima (p. ej. restos en ...\CurrentVersion\Uninstall).
     private static readonly HashSet<string> RegKeysProtegidas = new(StringComparer.OrdinalIgnoreCase)
     {
         @"HKCU\SOFTWARE",
@@ -229,6 +228,74 @@ public static class ScanEngine
         @"HKLM\SYSTEM\CurrentControlSet\Services",
     };
 
+    /// Ramas enteras que NUNCA se borran (ni la clave completa ni un valor): son
+    /// demasiado criticas como para que las toque una base de datos de la comunidad.
+    /// Borrar `HKLM\SOFTWARE\Classes\CLSID\{...}` rompe el registro COM del sistema,
+    /// `HKLM\SYSTEM\...` rompe servicios/drivers, `HKU`/`HKCC` tocan perfiles y
+    /// hardware. Ojo: NO se incluye `...\CurrentVersion` para no bloquear la limpieza
+    /// legitima de valores como los de "Run".
+    private static readonly string[] RegPrefijosProtegidos =
+    {
+        @"HKLM\SYSTEM",
+        @"HKLM\HARDWARE",
+        @"HKLM\SECURITY",
+        @"HKLM\SAM",
+        @"HKLM\BCD00000000",
+        @"HKLM\SOFTWARE\Microsoft\Windows NT",
+        @"HKLM\SOFTWARE\Classes\CLSID",
+        @"HKLM\SOFTWARE\Classes\Interface",
+        @"HKLM\SOFTWARE\Classes\TypeLib",
+        @"HKLM\SOFTWARE\Classes\AppID",
+        @"HKLM\SOFTWARE\Classes\Wow6432Node\CLSID",
+        @"HKLM\SOFTWARE\Classes\Wow6432Node\Interface",
+        @"HKLM\SOFTWARE\Classes\Wow6432Node\TypeLib",
+        @"HKLM\SOFTWARE\Policies",
+        @"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies",
+        @"HKCU\Control Panel",
+        @"HKCU\SOFTWARE\Policies",
+        @"HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies",
+        @"HKCR\CLSID",
+        @"HKCR\Interface",
+        @"HKCR\TypeLib",
+        @"HKCR\AppID",
+        @"HKU",
+        @"HKCC",
+    };
+
+    /// Normaliza una rama a la abreviatura del hive (HKEY_LOCAL_MACHINE -> HKLM) y
+    /// la pasa a mayusculas: sin esto una regla esquivaria las listas protegidas
+    /// escribiendo el nombre completo del hive.
+    private static string NormalizarReg(string path)
+    {
+        string p = path.Trim().ToUpperInvariant();
+        (string full, string abbr)[] mapa =
+        {
+            ("HKEY_CURRENT_USER", "HKCU"),
+            ("HKEY_LOCAL_MACHINE", "HKLM"),
+            ("HKEY_USERS", "HKU"),
+            ("HKEY_CURRENT_CONFIG", "HKCC"),
+            ("HKEY_CLASSES_ROOT", "HKCR"),
+        };
+        foreach (var (full, abbr) in mapa)
+        {
+            if (p.Equals(full, StringComparison.Ordinal)) return abbr;
+            if (p.StartsWith(full + "\\", StringComparison.Ordinal)) return abbr + p[full.Length..];
+        }
+        return p;
+    }
+
+    /// true si la rama esta dentro de una de las ramas criticas (o es ella misma).
+    private static bool RegProtegida(string keyPath)
+    {
+        foreach (var pref in RegPrefijosProtegidos)
+        {
+            if (keyPath.Equals(pref, StringComparison.OrdinalIgnoreCase) ||
+                keyPath.StartsWith(pref + "\\", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
+    }
+
     /// Borra las claves/valores de registro recogidos en el analisis.
     public static void DeleteRegistry(ScanResult result)
     {
@@ -243,12 +310,17 @@ public static class ScanEngine
             if (sep <= 0) return;
             string hive = item.KeyPath[..sep].ToUpperInvariant();
             string sub = item.KeyPath[(sep + 1)..];
+            string keyPath = NormalizarReg(item.KeyPath);
+
+            // Columna vertebral exacta o rama critica completa: no se toca nada,
+            // ni la clave entera ni un valor suelto.
+            if (RegKeysProtegidas.Contains(keyPath) || RegProtegida(keyPath)) return;
+
             var baseKey = RegistryHelpers.OpenHive(hive);
             if (baseKey is null) return;
 
             if (item.ValueName is null)
             {
-                if (RegKeysProtegidas.Contains(item.KeyPath)) return;   // nunca la clave completa
                 int last = sub.LastIndexOf('\\');
                 if (last < 0)
                 {

@@ -1,11 +1,8 @@
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using LunaOptimizer.Services;
 
 namespace LunaOptimizer.Views;
@@ -18,9 +15,13 @@ public partial class HomeView : UserControl
     private bool _tempBusy;
     private CancellationTokenSource? _cts;
 
-    // Historial de uso de RAM: 20 muestras cada 3 s = 60 segundos.
-    private readonly double[] _hist = new double[20];
-    private int _histN;
+    // Ultimos valores MOSTRADOS, guardados como numero. Antes se re-parseaba el
+    // texto del control ("11,3 GB") con CultureInfo.InvariantCulture, donde la coma
+    // es separador de miles: "11,3" -> 113 y la animacion arrancaba desde ahi, asi
+    // que el valor "saltaba" en cada refresco. Con un campo ya no se parsea nada.
+    private double? _memPctPrev;
+    private double? _memFreePrev;
+    private double? _diskPrev;
     private double _appsPrev;
 
     public HomeView(Action<string> go, Action<string> status)
@@ -28,6 +29,8 @@ public partial class HomeView : UserControl
         InitializeComponent();
         _go = go;
         _status = status;
+        // MediaGuard queda activo por defecto (ver MediaGuard.ProteccionActiva);
+        // ya no hay control visible en la interfaz.
         Loaded += (_, _) => Refresh();
     }
 
@@ -48,40 +51,15 @@ public partial class HomeView : UserControl
             var (total, free) = ProcessService.GetMemory();
             if (total <= 0) return;
             int pct = (int)Math.Round((total - free) * 100.0 / total);
-            double liberoGB = free / 1024.0;
-            double prevPct = double.TryParse(TxtMemPct.Text.Replace("%", ""),
-                NumberStyles.Any, CultureInfo.InvariantCulture, out var p) ? p : 0;
-            double prevFree = double.TryParse(TxtMemFree.Text.Replace(" GB", ""),
-                NumberStyles.Any, CultureInfo.InvariantCulture, out var f) ? f : liberoGB;
+            double libreGB = free / 1024.0;
 
-            Tween.Text("mempct", prevPct, pct, 420, "{0:0}%", s => TxtMemPct.Text = s);
-            Tween.Text("memfree", prevFree, liberoGB, 420, "{0:F1} GB", s => TxtMemFree.Text = s);
+            Tween.Text("mempct", _memPctPrev ?? pct, pct, 420, "{0:0}%", s => TxtMemPct.Text = s);
+            Tween.Text("memfree", _memFreePrev ?? libreGB, libreGB, 420, "{0:F1} GB", s => TxtMemFree.Text = s);
+            _memPctPrev = pct;
+            _memFreePrev = libreGB;
             TxtRamTotal.Text = $"RAM {total / 1024.0:F0} GB";
-
-            Array.Copy(_hist, 1, _hist, 0, _hist.Length - 1);
-            _hist[^1] = pct;
-            if (_histN < _hist.Length) _histN++;
-            DibujarSpark();
         }
         catch { }
-    }
-
-    /// Grafico lineal del uso de RAM (se reescala al tamanio real del Path).
-    private void DibujarSpark()
-    {
-        if (SparkRam is null || _histN < 2) return;
-        var sb = new StringBuilder();
-        int n = _histN;
-        for (int i = 0; i < n; i++)
-        {
-            int idx = _hist.Length - n + i;
-            double x = i * 100.0 / (n - 1);
-            double y = 100 - Math.Clamp(_hist[idx], 0, 100);
-            sb.Append(i == 0 ? "M" : "L")
-              .Append(x.ToString("F2", CultureInfo.InvariantCulture)).Append(',')
-              .Append(y.ToString("F2", CultureInfo.InvariantCulture)).Append(' ');
-        }
-        try { SparkRam.Data = Geometry.Parse(sb.ToString()); } catch { }
     }
 
     private void UpdateApps()
@@ -110,10 +88,9 @@ public partial class HomeView : UserControl
             double usedGB = (d.TotalSize - d.AvailableFreeSpace) / 1073741824.0;
             double totalGB = d.TotalSize / 1073741824.0;
             TxtDiskName.Text = $"Disco local ({d.Name.TrimEnd('\\')})";
-            double prevUsed = double.TryParse(TxtDiskVal.Text.Split('/')[0].Replace("GB", ""),
-                NumberStyles.Any, CultureInfo.InvariantCulture, out var u) ? u : usedGB;
-            Tween.To("disk", prevUsed, usedGB, 420, v =>
+            Tween.To("disk", _diskPrev ?? usedGB, usedGB, 420, v =>
                 TxtDiskVal.Text = $"{v:F1}GB/{totalGB:F1}GB");
+            _diskPrev = usedGB;
             double prevBar = BarDisk.Value;
             Tween.To("bar", prevBar, Math.Min(100, usedGB / totalGB * 100), 500, v => BarDisk.Value = v);
         }
@@ -157,9 +134,12 @@ public partial class HomeView : UserControl
             var prog = new Progress<string>(s => TxtHint.Text = s);
             var r = await TempCleaner.QuickCleanAsync(prog, _cts.Token);
 
-            TxtHint.Text = ResumenBoost(boost.trimmed, boost.usoAntesMB, boost.usoDespuesMB, r) + $" ({DateTime.Now:HH:mm}).";
-            _status($"Mejora de rendimiento: RAM en uso {boost.usoAntesMB / 1024.0:F1} GB -> " +
-                    $"{boost.usoDespuesMB / 1024.0:F1} GB, {r.FilesDeleted} temporales borrados.");
+            TxtHint.Text = ResumenBoost(boost.trimmed, boost.multimedia, boost.usoAntesMB, boost.usoDespuesMB, r) + $" ({DateTime.Now:HH:mm}).";
+            if (boost.multimedia)
+                _status($"Multimedia en curso: no se toco la RAM. {r.FilesDeleted} temporales borrados.");
+            else
+                _status($"Mejora de rendimiento: RAM en uso {boost.usoAntesMB / 1024.0:F1} GB -> " +
+                        $"{boost.usoDespuesMB / 1024.0:F1} GB, {r.FilesDeleted} temporales borrados.");
             UpdateMemory();
             _ = UpdateTempAsync();
         }
@@ -182,11 +162,16 @@ public partial class HomeView : UserControl
     }
 
     /// "N procesos · RAM en uso 9,2 GB -> 6,7 GB (−2,5 GB) · X temporales (Y MB) · Z al reiniciar"
-    private static string ResumenBoost(int trimmed, long usoAntesMB, long usoDespuesMB, TempCleaner.CleanResult r)
+    private static string ResumenBoost(int trimmed, bool multimedia, long usoAntesMB, long usoDespuesMB, TempCleaner.CleanResult r)
     {
+        string gpu = r.Multimedia ? " (sin caches de GPU)" : "";
+        if (multimedia)
+            return "Multimedia en curso: no se toco la RAM para no cortar el video/juego" +
+                   $" · {r.FilesDeleted} temporales borrados{gpu} ({TempCleaner.FormatBytes(r.BytesFreed)})";
+
         long baja = Math.Max(0, usoAntesMB - usoDespuesMB);
         string msg = $"{trimmed} procesos · RAM en uso {usoAntesMB / 1024.0:F1} GB -> {usoDespuesMB / 1024.0:F1} GB (−{baja / 1024.0:F1} GB)" +
-                     $" · {r.FilesDeleted} temporales borrados ({TempCleaner.FormatBytes(r.BytesFreed)})";
+                     $" · {r.FilesDeleted} temporales borrados{gpu} ({TempCleaner.FormatBytes(r.BytesFreed)})";
         if (r.ScheduledReboot > 0)
             msg += $" · {r.ScheduledReboot} al reiniciar ({TempCleaner.FormatBytes(r.ScheduledBytes)})";
         return msg;
@@ -220,11 +205,14 @@ public partial class HomeView : UserControl
             string extra = failedClose > 0 ? $", {failedClose} protegidos" : "";
             string reinicio = r.ScheduledReboot > 0 ? $", {r.ScheduledReboot} al reiniciar" : "";
             long baja = Math.Max(0, boost.usoAntesMB - boost.usoDespuesMB);
+            string ramTxt = boost.multimedia
+                ? "RAM no liberada (multimedia en curso)"
+                : $"RAM en uso −{baja / 1024.0:F1} GB";
             TxtHint.Text = $"Reinicio limpio: {closed} procesos cerrados{extra}, " +
                            $"{r.FilesDeleted} temporales borrados ({TempCleaner.FormatBytes(r.BytesFreed)}){reinicio}, " +
-                           $"RAM en uso −{baja / 1024.0:F1} GB ({DateTime.Now:HH:mm}).";
+                           $"{ramTxt} ({DateTime.Now:HH:mm}).";
             _status($"Limpieza rapida: {closed} procesos cerrados, {TempCleaner.FormatBytes(r.BytesFreed)} borrados{reinicio}, " +
-                    $"RAM en uso −{baja / 1024.0:F1} GB.");
+                    $"{ramTxt}.");
             UpdateMemory();
             UpdateApps();
             _ = UpdateTempAsync();

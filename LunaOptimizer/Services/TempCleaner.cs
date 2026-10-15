@@ -8,7 +8,7 @@ namespace LunaOptimizer.Services;
 /// borrandose al 100%. La limpieza profunda Winapp2 va aparte con FluentCleaner.Core.
 public static class TempCleaner
 {
-    public record CleanResult(int FilesDeleted, long BytesFreed, int ScheduledReboot, long ScheduledBytes, int Errors, List<string> Log);
+    public record CleanResult(int FilesDeleted, long BytesFreed, int ScheduledReboot, long ScheduledBytes, int Errors, List<string> Log, bool Multimedia = false);
 
     /// Raiz de los perfiles de usuario, sin hardcodear "C:\Users": se deduce del
     /// perfil actual (su carpeta padre) y si no, de la unidad de Windows.
@@ -113,13 +113,36 @@ public static class TempCleaner
             dirs.Add(Path.Combine(local, "Temp"));
             dirs.Add(Path.Combine(local, @"Microsoft\Windows\INetCache"));
             dirs.Add(Path.Combine(local, "CrashDumps"));
-            dirs.Add(Path.Combine(local, "D3DSCache"));
-            dirs.Add(Path.Combine(local, @"NVIDIA\GLCache"));
-            dirs.Add(Path.Combine(local, @"NVIDIA\DXCache"));
-            dirs.Add(Path.Combine(local, @"AMD\DxCache"));
         }
         _safeDirs = dirs.ToList();
         return _safeDirs;
+    }
+
+    /// Caches de shaders de la GPU (D3D/NVIDIA/AMD). Van APARTE de BuildSafeDirs
+    /// porque borrarlas mientras hay un video, un juego o cualquier app D3D en
+    /// curso obliga a recompilar shaders -> tiron y, a veces, cuelgue visual.
+    private static IEnumerable<string> GpuCacheDirs()
+    {
+        var dirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        void AddLocal(string local, string sub)
+        {
+            try { dirs.Add(Path.Combine(local, sub)); } catch { }
+        }
+
+        void AddUsuario(string local)
+        {
+            AddLocal(local, "D3DSCache");
+            AddLocal(local, @"NVIDIA\GLCache");
+            AddLocal(local, @"NVIDIA\DXCache");
+            AddLocal(local, @"AMD\DxCache");
+        }
+
+        AddUsuario(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+        foreach (var u in UserDirs())
+            AddUsuario(Path.Combine(u, "AppData", "Local"));
+
+        return dirs;
     }
 
     private static List<string>? _safeDirs;
@@ -137,13 +160,15 @@ public static class TempCleaner
         catch { return -1; }
     }
 
-    /// Borra la carpeta SOLO si existe y esta vacia (nunca junctions/reparse).
+    /// Borra la carpeta SOLO si existe y esta vacia (nunca junctions/reparse ni
+    /// zonas protegidas: SafetyGuard lo vuelve a comprobar).
     public static void DeleteIfEmpty(string dir)
     {
         try
         {
             var di = new DirectoryInfo(dir);
             if ((di.Attributes & FileAttributes.ReparsePoint) != 0) return;
+            if (!SafetyGuard.CanDeleteEmptyDir(dir)) return;
             if (Directory.Exists(dir) && !Directory.EnumerateFileSystemEntries(dir).Any())
                 Directory.Delete(dir);
         }
@@ -154,11 +179,18 @@ public static class TempCleaner
     {
         return await Task.Run(() =>
         {
+            // Proteccion multimedia: si hay audio/video/juego en curso, no se tocan
+            // las caches de GPU (borrarlas obliga a recompilar shaders -> tiron).
+            bool multimedia = MediaGuard.EstaActivo();
+            var dirs = new List<string>(BuildSafeDirs());
+            if (multimedia) progress?.Report("Multimedia en curso: no se tocan las caches de GPU");
+            else dirs.AddRange(GpuCacheDirs());
+
             int files = 0, errors = 0, scheduled = 0;
             long bytes = 0, scheduledBytes = 0;
             var log = new List<string>();
             var fallidos = new List<string>();       // pasada 1: no se pudieron borrar
-            foreach (var dir in BuildSafeDirs())
+            foreach (var dir in dirs)
             {
                 if (token.IsCancellationRequested) break;
                 if (!Directory.Exists(dir)) continue;
@@ -174,6 +206,10 @@ public static class TempCleaner
                         if ((fi.Attributes & (FileAttributes.ReparsePoint | FileAttributes.ReadOnly)) != 0) continue;
                     }
                     catch { errors++; continue; }
+                    // Barrera de seguridad: zonas criticas, enlaces y archivos recien
+                    // modificados (instalacion en curso). En TEMP si se permite borrar
+                    // .exe/.dll: el payload de un instalador viejo es basura legitima.
+                    if (!SafetyGuard.CanDelete(fi, out _, protegerEjecutables: false)) continue;
                     try
                     {
                         long len = fi.Length;
@@ -202,6 +238,7 @@ public static class TempCleaner
                 {
                     var fi = new FileInfo(f);
                     if (!fi.Exists) continue;
+                    if (!SafetyGuard.CanDelete(fi, out _, protegerEjecutables: false)) continue;
                     len = fi.Length;
                     fi.Delete();
                     if (!fi.Exists) { files++; bytes += len; continue; }
@@ -227,7 +264,7 @@ public static class TempCleaner
             }
 
             // carpetas vacias (saltar junctions), de mas profundo a shallow
-            foreach (var dir in BuildSafeDirs())
+            foreach (var dir in dirs)
             {
                 if (!Directory.Exists(dir)) continue;
                 foreach (var d in SafeEnumerateDirs(dir))
@@ -245,7 +282,7 @@ public static class TempCleaner
                 log.Add("DNS flush: OK");
             }
             catch (Exception ex) { log.Add("DNS flush: " + ex.Message); }
-            return new CleanResult(files, bytes, scheduled, scheduledBytes, errors, log);
+            return new CleanResult(files, bytes, scheduled, scheduledBytes, errors, log, multimedia);
         }, token);
     }
 

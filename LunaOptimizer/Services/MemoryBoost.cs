@@ -62,12 +62,25 @@ public static class MemoryBoost
         public int Attributes;
     }
 
-    public static (int trimmed, long gainedMB, long usoAntesMB, long usoDespuesMB, string log) Boost()
+    public static (int trimmed, long gainedMB, long usoAntesMB, long usoDespuesMB, string log, bool multimedia) Boost(bool forzar = false)
     {
         var (totalBefore, freeBefore) = ProcessService.GetMemory();
         long usoAntes = Math.Max(0, totalBefore - freeBefore);
         int trimmed = 0;
         var log = new System.Text.StringBuilder();
+
+        // No interrumpir multimedia. Purgar la lista standby, vaciar los working sets
+        // de TODO el sistema o tirar la cache de archivos mientras se ve un video (o
+        // se juega) deja al reproductor sin memoria ni cache: tiene que releer todo de
+        // disco -> tirones y, con decodificacion por hardware, cuelgues. Igual que PC
+        // Manager: si hay algo reproduciendose, no se toca la memoria. `forzar` lo
+        // salta en acciones explicitas (modo juego).
+        if (!forzar && MediaGuard.EstaActivo())
+        {
+            log.AppendLine("Multimedia en curso (video/juego/musica): se omite la liberacion de RAM.");
+            GuardarLog(log.ToString());
+            return (0, 0, usoAntes, usoAntes, log.ToString(), true);
+        }
 
         foreach (var p in Process.GetProcesses())
         {
@@ -134,7 +147,7 @@ public static class MemoryBoost
         log.AppendLine($"RAM en uso: {usoAntes} MB -> {usoDespues} MB");
         log.AppendLine($"RAM disponible: {freeBefore} MB -> {freeAfter} MB");
         GuardarLog(log.ToString());
-        return (trimmed, gained, usoAntes, usoDespues, log.ToString());
+        return (trimmed, gained, usoAntes, usoDespues, log.ToString(), false);
     }
 
     /// Deja constancia de las 3 etapas en %LocalAppData%\LunaOptimizer\boost.log

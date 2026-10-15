@@ -106,13 +106,25 @@ public partial class MainWindow : Window
         catch { }
     }
 
-    /// Cierre del todo: al cerrar la ventana, el proceso muere aunque quede
-    /// algun hilo o ventana residual en segundo plano.
+    /// Cierre del todo. Se hace en OnClosing, ANTES de destruir la ventana, para
+    /// no pasar por el apagado interno de WPF: en un exe de archivo unico su
+    /// telemetria (ControlsTraceLogger.LogUsedControlsDetails) intenta cargar
+    /// System.Diagnostics.Tracing, lanza FileNotFoundException y aborta el cierre.
+    /// Resultado: la ventana desaparecia pero el PROCESO quedaba vivo y sin
+    /// interfaz, reteniendo el mutex de instancia unica -> la app ya no volvia a
+    /// abrirse nunca mas (habia que matarla desde el Administrador de tareas).
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        base.OnClosing(e);
+        App.Cerrando = true;
+        Environment.Exit(0);
+    }
+
+    /// Respaldo por si el cierre no pasa por OnClosing.
     protected override void OnClosed(EventArgs e)
     {
         base.OnClosed(e);
         App.Cerrando = true;   // a partir de aqui, no registrar errores de apagado
-        try { Application.Current.Shutdown(); } catch { }
         Environment.Exit(0);
     }
 

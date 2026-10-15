@@ -91,6 +91,12 @@ public static class DeepCleanService
                 foreach (var f in cat.Files)
                 {
                     if (token.IsCancellationRequested) break;
+                    // Barrera de seguridad: las rutas de Winapp2 pueden apuntar a
+                    // cualquier lado; nunca borramos zonas criticas, enlaces ni
+                    // archivos recien modificados. En las apps ademas protegemos los
+                    // binarios (.exe/.dll): si una regla los pide, es mas probable
+                    // que la regla este mal que otra cosa.
+                    if (!SafetyGuard.CanDelete(f, out _, protegerEjecutables: cat.IsApps)) continue;
                     long sz = cat.IsApps
                         ? (cat.Sizes.TryGetValue(f, out var s) ? s : 0)
                         : StatSize(f);

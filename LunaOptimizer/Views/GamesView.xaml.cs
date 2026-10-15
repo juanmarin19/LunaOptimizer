@@ -56,9 +56,12 @@ public partial class GamesView : UserControl
 
             BarGame.Value = 100;
             long baja = Math.Max(0, boost.usoAntesMB - boost.usoDespuesMB);
+            string ramLinea = boost.multimedia
+                ? "RAM: no liberada (multimedia en curso)"
+                : $"RAM en uso: {boost.usoAntesMB / 1024.0:F1} GB -> {boost.usoDespuesMB / 1024.0:F1} GB (-{baja / 1024.0:F1} GB)";
             string resumen =
                 $"Apps cerradas: {closed}{(failed > 0 ? $" ({failed} protegidas)" : "")}\n" +
-                $"RAM en uso: {boost.usoAntesMB / 1024.0:F1} GB -> {boost.usoDespuesMB / 1024.0:F1} GB (-{baja / 1024.0:F1} GB)\n" +
+                $"{ramLinea}\n" +
                 $"Temporales: {r.FilesDeleted} archivos ({TempCleaner.FormatBytes(r.BytesFreed)})\n" +
                 $"Listo para jugar. ({DateTime.Now:HH:mm})";
             TxtResumen.Text = resumen;
