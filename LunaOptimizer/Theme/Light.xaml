@@ -1,36 +1,68 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- Tema claro: mismas claves que Theme/Dark.xaml -->
-    <SolidColorBrush x:Key="B_Window" Color="#F3F3F3"/>
-    <SolidColorBrush x:Key="B_Bg" Color="#F3F3F3"/>
-    <SolidColorBrush x:Key="B_Rail" Color="#FFFFFF"/>
+    <!-- Tema claro: paleta calcada de Microsoft PC Manager.
+         Mismas claves que Theme/Dark.xaml (ThemeManager los intercambia). -->
+
+    <!-- Fondo: blanco arriba, azul muy suave abajo (como el lienzo de PC Manager) -->
+    <LinearGradientBrush x:Key="B_Window" StartPoint="0.15,0" EndPoint="0.85,1">
+        <GradientStop Color="#FDFEFF" Offset="0"/>
+        <GradientStop Color="#F3F8FD" Offset="0.55"/>
+        <GradientStop Color="#E8F1FA" Offset="1"/>
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="B_Bg" Color="#F6FAFE"/>
+    <SolidColorBrush x:Key="B_Rail" Color="#EBF2F9"/>
+    <SolidColorBrush x:Key="B_RailBorder" Color="#DCE6F1"/>
     <SolidColorBrush x:Key="B_Card" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="B_Panel" Color="#EDEDED"/>
-    <SolidColorBrush x:Key="B_Border" Color="#D0D0D0"/>
-    <SolidColorBrush x:Key="B_BorderSoft" Color="#E2E2E2"/>
-    <SolidColorBrush x:Key="B_Text" Color="#1B1B1B"/>
-    <SolidColorBrush x:Key="B_TextSoft" Color="#2E2E2E"/>
-    <SolidColorBrush x:Key="B_Sub" Color="#5F5F5F"/>
-    <SolidColorBrush x:Key="B_Accent" Color="#0067C0"/>
-    <SolidColorBrush x:Key="B_AccentHover" Color="#1A86D9"/>
-    <SolidColorBrush x:Key="B_AccentPressed" Color="#00539A"/>
+    <SolidColorBrush x:Key="B_CardBorder" Color="#E3EBF4"/>
+    <SolidColorBrush x:Key="B_Panel" Color="#F3F8FD"/>
+    <SolidColorBrush x:Key="B_Border" Color="#D9E3EF"/>
+    <SolidColorBrush x:Key="B_BorderSoft" Color="#E7EEF7"/>
+
+    <SolidColorBrush x:Key="B_Text" Color="#1C2530"/>
+    <SolidColorBrush x:Key="B_TextSoft" Color="#2C3845"/>
+    <SolidColorBrush x:Key="B_Sub" Color="#5B6878"/>
+    <SolidColorBrush x:Key="B_Muted" Color="#8A97A7"/>
+
+    <SolidColorBrush x:Key="B_Accent" Color="#0F62B3"/>
+    <SolidColorBrush x:Key="B_AccentHover" Color="#1A72C7"/>
+    <SolidColorBrush x:Key="B_AccentPressed" Color="#0B4E8F"/>
+    <SolidColorBrush x:Key="B_Link" Color="#1769C4"/>
     <SolidColorBrush x:Key="B_OnAccent" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="B_Green" Color="#0F7B0F"/>
+    <SolidColorBrush x:Key="B_AccentSoft" Color="#E8F2FC"/>
+
+    <SolidColorBrush x:Key="B_Green" Color="#0F7B3F"/>
+    <SolidColorBrush x:Key="B_GreenSoft" Color="#E6F5EC"/>
     <SolidColorBrush x:Key="B_Red" Color="#C42B1C"/>
     <SolidColorBrush x:Key="B_OnRed" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="B_Yellow" Color="#8A5700"/>
-    <SolidColorBrush x:Key="B_Hover" Color="#E9E9E9"/>
-    <SolidColorBrush x:Key="B_Hover2" Color="#DFDFDF"/>
-    <SolidColorBrush x:Key="B_HoverTile" Color="#EEEEEE"/>
-    <SolidColorBrush x:Key="B_Button" Color="#E6E6E6"/>
-    <SolidColorBrush x:Key="B_ButtonHover" Color="#DBDBDB"/>
-    <SolidColorBrush x:Key="B_ButtonDisabled" Color="#EFEFEF"/>
-    <SolidColorBrush x:Key="B_DisabledText" Color="#9A9A9A"/>
+    <SolidColorBrush x:Key="B_RedSoft" Color="#FDECEA"/>
+    <SolidColorBrush x:Key="B_Yellow" Color="#8A5A00"/>
+    <SolidColorBrush x:Key="B_YellowSoft" Color="#FFF6E3"/>
+
+    <SolidColorBrush x:Key="B_Hover" Color="#EFF5FC"/>
+    <SolidColorBrush x:Key="B_Hover2" Color="#E3EEFA"/>
+    <SolidColorBrush x:Key="B_HoverTile" Color="#F7FAFE"/>
+    <SolidColorBrush x:Key="B_Button" Color="#EDF3FA"/>
+    <SolidColorBrush x:Key="B_ButtonHover" Color="#E1EAF5"/>
+    <SolidColorBrush x:Key="B_ButtonDisabled" Color="#F1F5FA"/>
+    <SolidColorBrush x:Key="B_DisabledText" Color="#9AA7B6"/>
     <SolidColorBrush x:Key="B_Input" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="B_Caret" Color="#1B1B1B"/>
-    <SolidColorBrush x:Key="B_Chip" Color="#DCEBF7"/>
-    <SolidColorBrush x:Key="B_Track" Color="#DDDDDD"/>
-    <SolidColorBrush x:Key="B_Thumb" Color="#9A9A9A"/>
-    <SolidColorBrush x:Key="B_Tab" Color="#EEEEEE"/>
-    <SolidColorBrush x:Key="B_TabHover" Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="B_Caret" Color="#1C2530"/>
+    <SolidColorBrush x:Key="B_Chip" Color="#E6F0FA"/>
+    <SolidColorBrush x:Key="B_Track" Color="#E4EBF4"/>
+    <SolidColorBrush x:Key="B_Thumb" Color="#B8C6D6"/>
+    <SolidColorBrush x:Key="B_Tab" Color="#F1F6FC"/>
+    <SolidColorBrush x:Key="B_TabHover" Color="#E4EDF8"/>
+
+    <!-- Banners: degradados suaves con ilustracion, como PC Manager -->
+    <LinearGradientBrush x:Key="B_Hero1" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#EAF7EF" Offset="0"/>
+        <GradientStop Color="#E7F1FC" Offset="0.55"/>
+        <GradientStop Color="#F5EAFA" Offset="1"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="B_Hero2" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#E9F1FC" Offset="0"/>
+        <GradientStop Color="#EEF6FF" Offset="1"/>
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="B_HeroBorder" Color="#E1EAF4"/>
 </ResourceDictionary>

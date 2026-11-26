@@ -88,14 +88,14 @@ public partial class DeepCleanView : UserControl
             int regs = cats.Sum(c => c.RegistryCount);
             int found = cats.Count(c => c.Bytes > 0 || c.RegistryCount > 0);
             BarScan.Value = 100;
-            TxtHead.Text = $"Se detectaron {TempCleaner.FormatBytes(total)} elementos para limpiar";
+            TxtHead.Text = $"Se detectaron {TempCleaner.FormatBytes(total)} para limpiar";
             TxtHeadSub.Text = $"{files} archivos en {found} de {cats.Count} categorias."
                               + (regs > 0 ? $" {regs} entradas de registro." : "");
             BtnAction.Content = "Limpiar";
             BtnAction.Style = (Style)FindResource("PrimaryBtn");
             BtnAction.IsEnabled = true;
             TxtStatus.Text = total > 0
-                ? $"Analisis completado: {TempCleaner.FormatBytes(total)}."
+                ? $"Análisis completado: {TempCleaner.FormatBytes(total)}."
                 : "No se encontraron elementos para limpiar.";
             _status($"Limpieza profunda: {TempCleaner.FormatBytes(total)} listos para limpiar.");
         }
@@ -188,7 +188,7 @@ public partial class DeepCleanView : UserControl
             SetRow(u.CatIndex, u.State, u.CatBytes, u.Phase == DeepPhase.Clean);
         if (u.Phase == DeepPhase.Scan)
         {
-            TxtHead.Text = $"Se detectaron {TempCleaner.FormatBytes(u.TotalBytes)} elementos para limpiar";
+            TxtHead.Text = $"Se detectaron {TempCleaner.FormatBytes(u.TotalBytes)} para limpiar";
             if (u.State == CatState.Scanning)
                 TxtHeadSub.Text = u.Current.Length > 0 ? $"Examinando: {u.Current}" : "Examinando...";
         }

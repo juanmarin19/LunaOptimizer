@@ -7,58 +7,67 @@
         MinWidth="456" MinHeight="664" MaxWidth="456" MaxHeight="664"
         ResizeMode="CanMinimize" WindowStyle="None"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource B_Window}" Foreground="{DynamicResource B_Text}">
+        Background="{DynamicResource B_Window}" Foreground="{DynamicResource B_Text}"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
     <WindowChrome.WindowChrome>
-        <!-- CaptionHeight=0: si es 32 toda la banda superior es HTCAPTION y
-             los botones de minimizar/cerrar reciben el drag en vez del click -->
+        <!-- CaptionHeight=0: la banda superior no captura el raton; el arrastre lo
+             hace el Border con MouseLeftButtonDown, y los botones reciben su clic. -->
         <WindowChrome CaptionHeight="0" CornerRadius="0" ResizeBorderThickness="0"
                       GlassFrameThickness="0" NonClientFrameEdges="None"
                       UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
+
     <Window.Resources>
-        <!-- Item de navegacion lateral estilo PC Manager: icono vectorial + etiqueta -->
+        <!-- Item del rail: icono + etiqueta, con barra azul a la izquierda cuando
+             esta activo (igual que Microsoft PC Manager). -->
         <Style x:Key="NavBtn" TargetType="RadioButton">
             <Setter Property="Foreground" Value="{DynamicResource B_Sub}"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Margin" Value="6,3"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Height" Value="54"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="4,8">
-                            <StackPanel>
+                        <Grid Background="Transparent">
+                            <Border x:Name="Pill" CornerRadius="8" Margin="7,3" Background="{TemplateBinding Background}"/>
+                            <Border x:Name="Bar" Width="3" Height="20" CornerRadius="2" HorizontalAlignment="Left"
+                                    VerticalAlignment="Center" Background="{DynamicResource B_Accent}"
+                                    Visibility="Collapsed"/>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,0,0">
                                 <Path x:Name="Ico" Data="{TemplateBinding Tag}" Stretch="Uniform"
-                                      Width="20" Height="20" HorizontalAlignment="Center"
-                                      Stroke="{DynamicResource B_Sub}" StrokeThickness="1.7"
+                                      Width="19" Height="19" HorizontalAlignment="Center"
+                                      Stroke="{DynamicResource B_Sub}" StrokeThickness="1.6"
                                       StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                                <TextBlock Text="{TemplateBinding Content}" FontSize="9" HorizontalAlignment="Center"
-                                           Margin="0,3,0,0" TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                <TextBlock Text="{TemplateBinding Content}" FontSize="9.5" HorizontalAlignment="Center"
+                                           Margin="0,4,0,0" TextElement.Foreground="{TemplateBinding Foreground}"/>
                             </StackPanel>
-                        </Border>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B_Hover}"/>
+                                <Setter TargetName="Pill" Property="Background" Value="{DynamicResource B_Hover}"/>
                                 <Setter Property="Foreground" Value="{DynamicResource B_Text}"/>
                                 <Setter TargetName="Ico" Property="Stroke" Value="{DynamicResource B_Text}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B_Hover2}"/>
-                                <Setter Property="Foreground" Value="{DynamicResource B_Accent}"/>
-                                <Setter TargetName="Ico" Property="Stroke" Value="{DynamicResource B_Accent}"/>
+                                <Setter TargetName="Pill" Property="Background" Value="{DynamicResource B_Hover2}"/>
+                                <Setter TargetName="Bar" Property="Visibility" Value="Visible"/>
+                                <Setter Property="Foreground" Value="{DynamicResource B_Link}"/>
+                                <Setter TargetName="Ico" Property="Stroke" Value="{DynamicResource B_Link}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-        <!-- Boton de barra de titulo -->
+
+        <!-- Boton de la barra de titulo -->
         <Style x:Key="CaptionBtn" TargetType="Button">
-            <Setter Property="Width" Value="44"/>
-            <Setter Property="Height" Value="32"/>
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="38"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource B_Sub}"/>
-            <Setter Property="FontSize" Value="12"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Focusable" Value="False"/>
@@ -70,7 +79,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B_Button}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B_Hover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource B_Text}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -86,7 +96,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#E81123"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#C42B1C"/>
                                 <Setter Property="Foreground" Value="White"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -95,99 +105,104 @@
             </Setter>
         </Style>
     </Window.Resources>
+
     <Border x:Name="RootBorder" BorderBrush="{DynamicResource B_Border}" BorderThickness="1"
             Background="{DynamicResource B_Window}">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="40"/>
+                <RowDefinition Height="38"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Barra de titulo propia: client total = 456x664 como PC Manager -->
-            <Grid Grid.Row="0" Background="{DynamicResource B_Rail}">
+            <!-- ===== Barra de titulo ===== -->
+            <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0" Background="Transparent" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                        <Image Source="LunaOptimizer.ico" Width="32" Height="32" Margin="0,0,8,0" Stretch="Uniform"/>
-                        <TextBlock Text="LunaOptimizer" FontSize="11" Foreground="{DynamicResource B_Sub}"
-                                   VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="9,0,0,0">
+                        <Image Source="LunaOptimizer.ico" Width="18" Height="18" Margin="0,0,7,0" Stretch="Uniform"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <TextBlock Text="LunaOptimizer" FontSize="11.5" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource B_Text}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Style="{StaticResource CaptionBtn}" Click="BtnTheme_Click"
-                            AutomationProperties.Name="Cambiar tema claro/oscuro"
-                            ToolTip="Cambiar tema claro/oscuro">
-                        <Path x:Name="ThemeIcon" Width="15" Height="15" Stretch="Uniform"
+                            AutomationProperties.Name="Cambiar tema claro u oscuro" ToolTip="Tema claro/oscuro">
+                        <Path x:Name="ThemeIcon" Width="14" Height="14" Stretch="Uniform"
                               HorizontalAlignment="Center" VerticalAlignment="Center"
                               Stroke="{DynamicResource B_Sub}" StrokeThickness="1.7"
                               StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                               Data="{StaticResource I.Moon}"/>
                     </Button>
-                    <Button Style="{StaticResource CaptionBtn}" Content="&#x2500;" Click="BtnMin_Click"
-                            AutomationProperties.Name="Minimizar" ToolTip="Minimizar"/>
-                    <Button Style="{StaticResource CloseBtn}" Content="&#x2715;" Click="BtnClose_Click"
-                            AutomationProperties.Name="Cerrar" ToolTip="Cerrar"/>
+                    <Button Style="{StaticResource CaptionBtn}" Click="BtnMin_Click" ToolTip="Minimizar"
+                            AutomationProperties.Name="Minimizar">
+                        <Path Width="11" Height="11" Stretch="Uniform" Stroke="{DynamicResource B_Sub}"
+                              StrokeThickness="1.3" Data="M2,6 H14"/>
+                    </Button>
+                    <Button Style="{StaticResource CloseBtn}" Click="BtnClose_Click" ToolTip="Cerrar"
+                            AutomationProperties.Name="Cerrar">
+                        <Path Width="10" Height="10" Stretch="Uniform" Stroke="{DynamicResource B_Sub}"
+                              StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              Data="M2,2 L12,12 M12,2 L2,12"/>
+                    </Button>
                 </StackPanel>
             </Grid>
 
+            <!-- ===== Rail + contenido ===== -->
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="88"/>
+                    <ColumnDefinition Width="76"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Rail lateral -->
-                <Border Grid.Column="0" Background="{DynamicResource B_Rail}">
+                <Border Grid.Column="0" Background="{DynamicResource B_Rail}"
+                        BorderBrush="{DynamicResource B_RailBorder}" BorderThickness="0,0,1,0">
                     <DockPanel LastChildFill="False">
-                        <RadioButton x:Name="NavHome" Style="{StaticResource NavBtn}" Tag="{StaticResource I.Home}" Content="Inicio"
-                                     DockPanel.Dock="Top" IsChecked="True" Checked="NavHome_Checked"/>
-                        <RadioButton x:Name="NavProc" Style="{StaticResource NavBtn}" Tag="{StaticResource I.List}" Content="Procesos"
-                                     DockPanel.Dock="Top" Checked="NavProc_Checked"/>
-                        <RadioButton x:Name="NavClean" Style="{StaticResource NavBtn}" Tag="{StaticResource I.Sparkle}" Content="Limpieza"
-                                     DockPanel.Dock="Top" Checked="NavClean_Checked"/>
-                        <RadioButton x:Name="NavGames" Style="{StaticResource NavBtn}" Tag="{StaticResource I.Zap}" Content="Juegos"
-                                     DockPanel.Dock="Top" Checked="NavGames_Checked"/>
-                        <RadioButton x:Name="NavHealth" Style="{StaticResource NavBtn}" Tag="{StaticResource I.Monitor}" Content="Salud"
-                                     DockPanel.Dock="Top" Checked="NavHealth_Checked"/>
-                        <RadioButton x:Name="NavApps" Style="{StaticResource NavBtn}" Tag="{StaticResource I.Trash}" Content="Apps"
-                                     DockPanel.Dock="Top" Checked="NavApps_Checked"/>
+                        <RadioButton x:Name="NavHome" DockPanel.Dock="Top" Style="{StaticResource NavBtn}"
+                                     Tag="{StaticResource I.Home}" Content="Inicio" IsChecked="True"
+                                     Checked="NavHome_Checked"/>
+                        <RadioButton x:Name="NavProtect" DockPanel.Dock="Top" Style="{StaticResource NavBtn}"
+                                     Tag="{StaticResource I.Shield}" Content="Protección" Checked="NavProtect_Checked"/>
+                        <RadioButton x:Name="NavStorage" DockPanel.Dock="Top" Style="{StaticResource NavBtn}"
+                                     Tag="{StaticResource I.Pie}" Content="Almacén" Checked="NavStorage_Checked"/>
+                        <RadioButton x:Name="NavProc" DockPanel.Dock="Top" Style="{StaticResource NavBtn}"
+                                     Tag="{StaticResource I.List}" Content="Procesos" Checked="NavProc_Checked"/>
+                        <RadioButton x:Name="NavClean" DockPanel.Dock="Top" Style="{StaticResource NavBtn}"
+                                     Tag="{StaticResource I.Sparkle}" Content="Limpieza" Checked="NavClean_Checked"/>
+                        <RadioButton x:Name="NavApps" DockPanel.Dock="Top" Style="{StaticResource NavBtn}"
+                                     Tag="{StaticResource I.Grid}" Content="Aplicaciónes" Checked="NavApps_Checked"/>
+                        <RadioButton x:Name="NavTools" DockPanel.Dock="Top" Style="{StaticResource NavBtn}"
+                                     Tag="{StaticResource I.Toolbox}" Content="Herramientas" Checked="NavTools_Checked"/>
+
+                        <RadioButton x:Name="NavSettings" DockPanel.Dock="Bottom" Style="{StaticResource NavBtn}"
+                                     Tag="{StaticResource I.Gear}" Content="Ajustes" Checked="NavSettings_Checked"/>
                     </DockPanel>
                 </Border>
 
-                <!-- Contenido -->
                 <Grid Grid.Column="1">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Margin="12,12,12,8">
-                        <TextBlock x:Name="TxtTitle" Text="Inicio" FontSize="16" FontWeight="Bold"
-                                   Foreground="{DynamicResource B_Text}"/>
-                        <TextBlock x:Name="TxtSub" Text="RAM: ..." FontSize="11"
-                                   Foreground="{DynamicResource B_Sub}" Margin="0,3,0,0"/>
-                    </StackPanel>
-
-                    <!-- Background=Transparent: sin fondo el ScrollViewer no es
-                         "hit-testeable" en las zonas vacias y la rueda del mouse se
-                         perdia (solo respondia la barra). -->
-                    <ScrollViewer Grid.Row="1" Background="Transparent"
+                    <!-- Background=Transparent: sin fondo el ScrollViewer no recibe la
+                         rueda del raton en las zonas vacias de la tarjeta. -->
+                    <ScrollViewer x:Name="Scroller" Grid.Row="0" Background="Transparent"
                                   VerticalScrollBarVisibility="Auto"
                                   HorizontalScrollBarVisibility="Disabled" Focusable="False"
                                   Padding="0">
-                        <ContentControl x:Name="Host" Margin="12,0,12,0" Focusable="False"/>
+                        <ContentControl x:Name="Host" Margin="12,10,12,4" Focusable="False"/>
                     </ScrollViewer>
 
-                    <Border Grid.Row="2" Background="{DynamicResource B_Rail}" Padding="12,7" Margin="12,6,12,10" CornerRadius="8">
+                    <Border Grid.Row="1" Padding="14,4,14,7" Background="Transparent">
                         <Grid>
-                            <TextBlock x:Name="TxtStatus" Text="Listo." FontSize="11"
-                                       Foreground="{DynamicResource B_Sub}"/>
+                            <TextBlock x:Name="TxtStatus" Text="Listo." FontSize="10.5"
+                                       Foreground="{DynamicResource B_Muted}" TextTrimming="CharacterEllipsis"/>
                             <TextBlock x:Name="TxtVersion" Text="" FontSize="10"
-                                       Foreground="{DynamicResource B_Sub}" Opacity="0.6"
+                                       Foreground="{DynamicResource B_Muted}" Opacity="0.85"
                                        HorizontalAlignment="Right"/>
                         </Grid>
                     </Border>

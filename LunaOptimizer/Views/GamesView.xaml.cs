@@ -12,13 +12,17 @@ namespace LunaOptimizer.Views;
 public partial class GamesView : UserControl
 {
     private readonly Action<string>? _status;
+    private readonly Action<string>? _go;
     private CancellationTokenSource? _cts;
 
-    public GamesView(Action<string>? status = null)
+    public GamesView(Action<string>? go = null, Action<string>? status = null)
     {
         InitializeComponent();
+        _go = go;
         _status = status;
     }
+
+    private void BtnBack_Click(object sender, RoutedEventArgs e) => _go?.Invoke("tools");
 
     private async void BtnGame_Click(object sender, RoutedEventArgs e)
     {

@@ -25,7 +25,7 @@ public partial class AppsView : UserControl
 
     public void Refresh()
     {
-        TxtEmpty.Text = "Leyendo apps instaladas...";
+        TxtEmpty.Text = "Leyendo aplicaciones instaladas...";
         TxtEmpty.Visibility = Visibility.Visible;
         _ = Task.Run(() =>
         {
@@ -65,7 +65,13 @@ public partial class AppsView : UserControl
 
     // debounce: el filtro corre sobre la lista ya cargada en memoria (_all),
     // no re-lee el registro; no hace falta timer.
-    private void TxtFilter_TextChanged(object sender, TextChangedEventArgs e) => ApplyFilter();
+    private void TxtFilter_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (TxtFilterHint is not null)
+            TxtFilterHint.Visibility = string.IsNullOrEmpty(TxtFilter.Text)
+                ? Visibility.Visible : Visibility.Collapsed;
+        ApplyFilter();
+    }
 
     private void BtnRefresh_Click(object sender, RoutedEventArgs e) => Refresh();
 
@@ -82,7 +88,7 @@ public partial class AppsView : UserControl
         if (confirm != MessageBoxResult.Yes) return;
 
         btn.IsEnabled = false;
-        TxtStatus.Text = $"Desinstalando {app.Name}...";
+        _status?.Invoke($"Desinstalando {app.Name}...");
 
         var (code, err) = await Task.Run(() => AppUninstallerService.Uninstall(app));
 
@@ -93,15 +99,15 @@ public partial class AppsView : UserControl
             // borrar entrada huerfana si quedo
             bool regBorrada = await Task.Run(() => AppUninstallerService.RemoveRegistryEntry(app));
             string avisoReinicio = code is 3010 or 1641 ? " (reinicia para terminar)" : "";
-            TxtStatus.Text = $"{app.Name} desinstalado{avisoReinicio}." + (regBorrada ? "" : " (entrada del registro conservada)");
+            _status?.Invoke($"{app.Name} desinstalado{avisoReinicio}." + (regBorrada ? "" : " (entrada del registro conservada)"));
             _status?.Invoke($"Desinstalado: {app.Name}.");
             Refresh();
         }
         else
         {
-            TxtStatus.Text = $"No se pudo desinstalar {app.Name}. {err}".Trim();
-            MessageBox.Show($"El desinstalador de {app.Name} devolvio un error.\n\n" +
-                $"Codigo: {code}\n{err}\n\n" +
+            _status?.Invoke($"No se pudo desinstalar {app.Name}. {err}".Trim());
+            MessageBox.Show($"El desinstalador de {app.Name} devolvió un error.\n\n" +
+                $"Código: {code}\n{err}\n\n" +
                 "Puede que requiera ejecutarse con permisos o de forma interactiva.",
                 "Desinstalar", MessageBoxButton.OK, MessageBoxImage.Warning);
             btn.IsEnabled = true;

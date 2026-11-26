@@ -12,13 +12,17 @@ namespace LunaOptimizer.Views;
 public partial class HealthView : UserControl
 {
     private readonly Action<string>? _status;
+    private readonly Action<string>? _go;
 
-    public HealthView(Action<string>? status = null)
+    public HealthView(Action<string>? go = null, Action<string>? status = null)
     {
         InitializeComponent();
+        _go = go;
         _status = status;
         Loaded += (_, _) => Refresh();
     }
+
+    private void BtnBack_Click(object sender, RoutedEventArgs e) => _go?.Invoke("tools");
 
     public void Refresh()
     {
@@ -28,11 +32,11 @@ public partial class HealthView : UserControl
 
         int ok = items.Count(i => i.Ok);
         int pct = items.Count == 0 ? 0 : ok * 100 / items.Count;
-        TxtScore.Text = $"{ok}/{items.Count} optimizados";
+        TxtScore.Text = $"{ok} de {items.Count} ajustes optimizados";
         TxtScore.Foreground = pct >= 80
             ? (System.Windows.Media.Brush)FindResource("B_Green")
             : pct >= 50
-                ? (System.Windows.Media.Brush)FindResource("B_Warn")
+                ? (System.Windows.Media.Brush)FindResource("B_Yellow")
                 : (System.Windows.Media.Brush)FindResource("B_Red");
     }
 

@@ -10,12 +10,12 @@ using LunaOptimizer.Views;
 namespace LunaOptimizer;
 
 /// <summary>
-/// Interaction logic for MainWindow.xaml
+/// Ventana principal: barra de titulo propia, rail de navegacion estilo PC Manager
+/// y un unico host de contenido. Las vistas se crean bajo demanda (lazy) para que
+/// el arranque sea inmediato.
 /// </summary>
 public partial class MainWindow : Window
 {
-    // Vistas creadas bajo demanda (lazy): no se instancia una pestana que el
-    // usuario nunca abre, asi el arranque y el primer pintado son mas rapidos.
     private HomeView? _home;
     private ProcessesView? _processes;
     private CleanerView? _cleaner;
@@ -23,16 +23,29 @@ public partial class MainWindow : Window
     private GamesView? _games;
     private HealthView? _health;
     private AppsView? _apps;
+    private ProtectionView? _protection;
+    private StorageView? _storage;
+    private StartupView? _startup;
+    private ToolboxView? _toolbox;
+    private SettingsView? _settings;
 
-    private HomeView Home => _home ??= new HomeView(Navigate, s => TxtStatus.Text = s);
-    private ProcessesView Processes => _processes ??= new ProcessesView(s => TxtStatus.Text = s);
+    private HomeView Home => _home ??= new HomeView(Navigate, SetStatus);
+    private ProcessesView Processes => _processes ??= new ProcessesView(SetStatus);
     private CleanerView Cleaner => _cleaner ??= new CleanerView(Navigate);
-    private DeepCleanView Deep => _deep ??= new DeepCleanView(Navigate, s => TxtStatus.Text = s);
-    private GamesView Games => _games ??= new GamesView(s => TxtStatus.Text = s);
-    private HealthView Health => _health ??= new HealthView(s => TxtStatus.Text = s);
-    private AppsView Apps => _apps ??= new AppsView(s => TxtStatus.Text = s);
+    private DeepCleanView Deep => _deep ??= new DeepCleanView(Navigate, SetStatus);
+    private GamesView Games => _games ??= new GamesView(Navigate, SetStatus);
+    private HealthView Health => _health ??= new HealthView(Navigate, SetStatus);
+    private AppsView Apps => _apps ??= new AppsView(SetStatus);
+    private ProtectionView Protection => _protection ??= new ProtectionView(Navigate, SetStatus);
+    private StorageView Storage => _storage ??= new StorageView(Navigate, SetStatus);
+    private StartupView Startup => _startup ??= new StartupView(Navigate, SetStatus);
+    private ToolboxView Toolbox => _toolbox ??= new ToolboxView(Navigate);
+    private SettingsView Settings => _settings ??= new SettingsView(Navigate, SetStatus, ApplyTheme);
 
     private readonly DispatcherTimer _memTimer;
+    private readonly DispatcherTimer _smartTimer;
+    private bool _smartBusy;
+    private DateTime _ultimoSmart = DateTime.MinValue;
 
     public MainWindow()
     {
@@ -40,17 +53,14 @@ public partial class MainWindow : Window
 
         Host.Content = Home;
 
-        // Esquinas redondeadas (Win11) y modo oscuro/claro del marco DWM
         SourceInitialized += (_, _) =>
         {
             IntPtr hwnd = new WindowInteropHelper(this).Handle;
             MicaHelper.TryEnable(hwnd);
             ThemeManager.Registrar(this, RootBorder, hwnd);
-            ActualizarIconoTema();
+            UpdateThemeIcon();
         };
 
-        // La version sale SOLO del ensamblado (que la toma de <Version> en el csproj):
-        // asi no hay que mantener el numero en varios lugares.
         try
         {
             var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
@@ -58,10 +68,24 @@ public partial class MainWindow : Window
         }
         catch { TxtVersion.Text = "v?"; }
 
-        RefreshMem();
+        // Pagina inicial opcional (utilidad de soporte y pruebas):
+        //   LunaOptimizer.exe --page=protect
+        try
+        {
+            var arg = Environment.GetCommandLineArgs()
+                .FirstOrDefault(a => a.StartsWith("--page=", StringComparison.OrdinalIgnoreCase));
+            if (arg is not null) Navigate(arg["--page=".Length..]);
+        }
+        catch { }
+
         _memTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-        _memTimer.Tick += (_, _) => RefreshMem();
+        _memTimer.Tick += (_, _) => { try { _home?.UpdateMemory(); } catch { } };
         _memTimer.Start();
+
+        // "Smart Boost" de PC Manager: optimiza solo cuando el equipo lo necesita.
+        _smartTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
+        _smartTimer.Tick += (_, _) => _ = SmartBoostTickAsync();
+        _smartTimer.Start();
     }
 
     private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -74,45 +98,55 @@ public partial class MainWindow : Window
 
     private void BtnClose_Click(object sender, RoutedEventArgs e) => Close();
 
-    /// Cambio claro/oscuro (boton de la barra de titulo).
-    private void BtnTheme_Click(object sender, RoutedEventArgs e)
+    private void BtnTheme_Click(object sender, RoutedEventArgs e) => ThemeManager.Toggle();
+
+    public void ApplyTheme(bool oscuro)
     {
-        ThemeManager.Toggle();
-        ActualizarIconoTema();
+        ThemeManager.Set(oscuro);
+        UpdateThemeIcon();
     }
 
-    private void ActualizarIconoTema()
+    private void UpdateThemeIcon()
     {
         try
         {
             ThemeIcon.Data = (System.Windows.Media.Geometry)FindResource(
-                ThemeManager.Oscuro ? "I.Moon" : "I.Sun");
+                ThemeManager.Oscuro ? "I.Sun" : "I.Moon");
         }
         catch { }
     }
 
-    /// Transicion suave al cambiar de pantalla.
+    public void SetStatus(string texto)
+    {
+        try
+        {
+            if (Dispatcher.CheckAccess()) TxtStatus.Text = texto;
+            else Dispatcher.BeginInvoke(() => TxtStatus.Text = texto);
+        }
+        catch { }
+    }
+
     private void AnimateIn()
     {
         try
         {
             Host.BeginAnimation(UIElement.OpacityProperty, null);
-            var a = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(160))
+            var a = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(150))
             {
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
             Host.BeginAnimation(UIElement.OpacityProperty, a);
+            Scroller.ScrollToTop();
         }
         catch { }
     }
 
-    /// Cierre del todo. Se hace en OnClosing, ANTES de destruir la ventana, para
-    /// no pasar por el apagado interno de WPF: en un exe de archivo unico su
-    /// telemetria (ControlsTraceLogger.LogUsedControlsDetails) intenta cargar
-    /// System.Diagnostics.Tracing, lanza FileNotFoundException y aborta el cierre.
-    /// Resultado: la ventana desaparecia pero el PROCESO quedaba vivo y sin
-    /// interfaz, reteniendo el mutex de instancia unica -> la app ya no volvia a
-    /// abrirse nunca mas (habia que matarla desde el Administrador de tareas).
+    /// <summary>
+    /// Cierre real. Se hace aqui, antes del apagado interno de WPF, porque en un
+    /// exe de archivo unico la telemetria de WPF intenta cargar
+    /// System.Diagnostics.Tracing y el proceso quedaba vivo sin ventana (y con el
+    /// mutex de instancia unica bloqueaba los siguientes arranques).
+    /// </summary>
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
         base.OnClosing(e);
@@ -120,114 +154,185 @@ public partial class MainWindow : Window
         Environment.Exit(0);
     }
 
-    /// Respaldo por si el cierre no pasa por OnClosing.
     protected override void OnClosed(EventArgs e)
     {
         base.OnClosed(e);
-        App.Cerrando = true;   // a partir de aqui, no registrar errores de apagado
+        App.Cerrando = true;
         Environment.Exit(0);
     }
 
-    /// Navegacion desde las tarjetas del Inicio y desde Limpieza.
-    private void Navigate(string target)
+    private void ClearNav()
     {
-        switch (target)
+        NavHome.IsChecked = false;
+        NavProtect.IsChecked = false;
+        NavStorage.IsChecked = false;
+        NavProc.IsChecked = false;
+        NavClean.IsChecked = false;
+        NavTools.IsChecked = false;
+        NavApps.IsChecked = false;
+        NavSettings.IsChecked = false;
+    }
+
+    private void Show(UserControl vista)
+    {
+        Host.Content = vista;
+        AnimateIn();
+    }
+
+    /// <summary>Navegacion por nombre (tarjetas del Inicio, acciones de revision...).</summary>
+    public void Navigate(string destino)
+    {
+        switch (destino)
         {
-            case "proc": NavProc.IsChecked = true; break;
-            case "clean": NavClean.IsChecked = true; break;
-            case "games": NavGames.IsChecked = true; break;
-            case "health": NavHealth.IsChecked = true; break;
-            case "apps": NavApps.IsChecked = true; break;
-            case "deep": ShowDeep("home"); break;
-            case "deepclean": ShowDeep("clean"); break;
-            default: NavHome.IsChecked = true; break;
+            case "protect":
+            case "proteccion":
+                NavProtect.IsChecked = true; break;
+            case "storage":
+            case "almacen":
+                NavStorage.IsChecked = true; break;
+            case "proc":
+                NavProc.IsChecked = true; break;
+            case "clean":
+                NavClean.IsChecked = true; break;
+            case "apps":
+                NavApps.IsChecked = true; break;
+            case "tools":
+                NavTools.IsChecked = true; break;
+            case "settings":
+                NavSettings.IsChecked = true; break;
+            case "deep":
+            case "deepclean":
+                ShowDeep("home"); break;
+            case "startup":
+                ShowStartup(); break;
+            case "games":
+                ShowGames(); break;
+            case "health":
+                ShowHealth(); break;
+            default:
+                NavHome.IsChecked = true; break;
         }
     }
 
-    /// Pantalla de limpieza profunda estilo PC Manager: sin ningun radio
-    /// marcado, para que cualquier clic del rail dispare su Checked y salga.
     private void ShowDeep(string back)
     {
-        NavHome.IsChecked = false;
-        NavProc.IsChecked = false;
-        NavClean.IsChecked = false;
-        NavGames.IsChecked = false;
-        NavHealth.IsChecked = false;
-        NavApps.IsChecked = false;
+        ClearNav();
         Deep.BackTarget = back;
-        Host.Content = Deep;
-        if (TxtTitle is not null) TxtTitle.Text = "Limpieza profunda";
-        if (TxtStatus is not null) TxtStatus.Text = "Limpieza profunda.";
+        Show(Deep);
         Deep.OnShown();
-        AnimateIn();
+    }
+
+    private void ShowStartup()
+    {
+        ClearNav();
+        Show(Startup);
+        Startup.OnShown();
+    }
+
+    private void ShowGames()
+    {
+        ClearNav();
+        Show(Games);
+    }
+
+    private void ShowHealth()
+    {
+        ClearNav();
+        Show(Health);
+        Health.Refresh();
     }
 
     private void NavHome_Checked(object sender, RoutedEventArgs e)
     {
         if (Host is null) return;
-        Host.Content = Home;
-        if (TxtTitle is not null) TxtTitle.Text = "Inicio";
-        if (TxtStatus is not null) TxtStatus.Text = "Inicio.";
+        Show(Home);
         Home.Refresh();
-        AnimateIn();
+    }
+
+    private void NavProtect_Checked(object sender, RoutedEventArgs e)
+    {
+        if (Host is null) return;
+        Show(Protection);
+        Protection.OnShown();
+    }
+
+    private void NavStorage_Checked(object sender, RoutedEventArgs e)
+    {
+        if (Host is null) return;
+        Show(Storage);
+        Storage.OnShown();
     }
 
     private void NavProc_Checked(object sender, RoutedEventArgs e)
     {
         if (Host is null) return;
-        Host.Content = Processes;
+        Show(Processes);
         Processes.Refresh();
-        if (TxtTitle is not null) TxtTitle.Text = "Procesos";
-        if (TxtStatus is not null) TxtStatus.Text = "Procesos.";
-        AnimateIn();
     }
 
     private void NavClean_Checked(object sender, RoutedEventArgs e)
     {
         if (Host is null) return;
-        Host.Content = Cleaner;
-        if (TxtTitle is not null) TxtTitle.Text = "Limpieza";
-        if (TxtStatus is not null) TxtStatus.Text = "Limpieza.";
-        AnimateIn();
-    }
-
-    private void NavGames_Checked(object sender, RoutedEventArgs e)
-    {
-        if (Host is null) return;
-        Host.Content = Games;
-        if (TxtTitle is not null) TxtTitle.Text = "Juegos";
-        if (TxtStatus is not null) TxtStatus.Text = "Modo juego.";
-        AnimateIn();
-    }
-
-    private void NavHealth_Checked(object sender, RoutedEventArgs e)
-    {
-        if (Host is null) return;
-        Host.Content = Health;
-        Health.Refresh();
-        if (TxtTitle is not null) TxtTitle.Text = "Salud";
-        if (TxtStatus is not null) TxtStatus.Text = "Salud del sistema.";
-        AnimateIn();
+        Show(Cleaner);
     }
 
     private void NavApps_Checked(object sender, RoutedEventArgs e)
     {
         if (Host is null) return;
-        Host.Content = Apps;
+        Show(Apps);
         Apps.Refresh();
-        if (TxtTitle is not null) TxtTitle.Text = "Apps";
-        if (TxtStatus is not null) TxtStatus.Text = "Apps instaladas.";
-        AnimateIn();
     }
 
-    private void RefreshMem()
+    private void NavTools_Checked(object sender, RoutedEventArgs e)
+    {
+        if (Host is null) return;
+        Show(Toolbox);
+    }
+
+    private void NavSettings_Checked(object sender, RoutedEventArgs e)
+    {
+        if (Host is null) return;
+        Show(Settings);
+        Settings.Refresh();
+    }
+
+    /// <summary>
+    /// Smart Boost: si el usuario lo activo en Ajustes, cada minuto se mira si la
+    /// RAM o los temporales pasan del umbral y, solo entonces, se liberan. Nunca
+    /// se ejecuta si hay video/juego/musica en curso (MediaGuard) ni mas de una
+    /// vez cada 10 minutos.
+    /// </summary>
+    private async Task SmartBoostTickAsync()
     {
         try
         {
-            var (total, free) = ProcessService.GetMemory();
-            if (TxtSub is not null) TxtSub.Text = $"RAM: {free} MB libres de {total} MB";
-            _home?.UpdateMemory();
+            var cfg = SettingsStore.Current;
+            if (!cfg.SmartBoost || _smartBusy) return;
+            if ((DateTime.Now - _ultimoSmart).TotalMinutes < 10) return;
+
+            var (total, libre) = ProcessService.GetMemory();
+            if (total <= 0) return;
+            int uso = (int)Math.Round((total - libre) * 100.0 / total);
+
+            long temp = 0;
+            if (uso < cfg.SmartBoostRamPct)
+                temp = await Task.Run(() => TempCleaner.MeasureTemp().bytes);
+
+            bool porRam = uso >= cfg.SmartBoostRamPct;
+            bool porTemp = temp >= cfg.SmartBoostTempMB * 1048576L;
+            if (!porRam && !porTemp) return;
+            if (MediaGuard.EstaActivo()) return;
+
+            _smartBusy = true;
+            _ultimoSmart = DateTime.Now;
+            SetStatus(porRam ? "Smart Boost: memoria alta, liberando..." : "Smart Boost: limpiando temporales...");
+            var boost = await Task.Run(() => MemoryBoost.Boost());
+            var r = await TempCleaner.QuickCleanAsync();
+            SetStatus($"Smart Boost: {TempCleaner.FormatBytes(r.BytesFreed)} liberados, " +
+                      $"RAM en uso {boost.usoAntesMB / 1024.0:F1} GB -> {boost.usoDespuesMB / 1024.0:F1} GB.");
+            _home?.Refresh();
         }
-        catch (Exception ex) { if (TxtStatus is not null) TxtStatus.Text = ex.Message; }
+        catch (Exception ex) { AppLog.Error(ex, "smart boost"); }
+        finally { _smartBusy = false; }
     }
 }

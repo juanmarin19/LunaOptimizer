@@ -1,0 +1,69 @@
+<UserControl x:Class="LunaOptimizer.Views.StorageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Background="Transparent">
+
+        <TextBlock Text="Almacénamiento" Style="{StaticResource H1}" Margin="2,2,0,0"/>
+        <TextBlock Text="Que ocupa tu disco y que puedes liberar sin riesgo." Style="{StaticResource Body}"
+                   Margin="2,3,0,10"/>
+
+        <!-- ===== Discos ===== -->
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Path Data="{StaticResource I.Pie}" Width="15" Height="15" Stretch="Uniform"
+                              Stroke="{DynamicResource B_Accent}" StrokeThickness="1.6"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                        <TextBlock Text="Unidades" Style="{StaticResource H2}" Margin="7,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button Content="Limpieza profunda" Style="{StaticResource LinkBtn}" HorizontalAlignment="Right"
+                            VerticalAlignment="Center" Click="BtnDeep_Click"/>
+                </Grid>
+                <StackPanel x:Name="ListaDiscos" Margin="0,10,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ===== Carpetas del usuario ===== -->
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Path Data="{StaticResource I.Folder}" Width="15" Height="15" Stretch="Uniform"
+                              Stroke="{DynamicResource B_Accent}" StrokeThickness="1.6"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                        <TextBlock Text="Carpetas" Style="{StaticResource H2}" Margin="7,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button x:Name="BtnMedir" Content="Medir" Style="{StaticResource LinkBtn}" HorizontalAlignment="Right"
+                            VerticalAlignment="Center" Click="BtnMedir_Click"/>
+                </Grid>
+                <TextBlock x:Name="TxtMedirEstado" Text="Pulsa Medir para ver cuanto ocupa cada carpeta."
+                           Style="{StaticResource Caption}" Margin="0,4,0,0"/>
+                <StackPanel x:Name="ListaCarpetas" Margin="0,8,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ===== Archivos grandes ===== -->
+        <Border Style="{StaticResource Card}" Margin="0,0,0,8">
+            <StackPanel>
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Path Data="{StaticResource I.File}" Width="15" Height="15" Stretch="Uniform"
+                              Stroke="{DynamicResource B_Accent}" StrokeThickness="1.6"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                        <TextBlock Text="Archivos grandes" Style="{StaticResource H2}" Margin="7,0,0,0"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button x:Name="BtnGrandes" Content="Buscar" Style="{StaticResource LinkBtn}"
+                            HorizontalAlignment="Right" VerticalAlignment="Center" Click="BtnGrandes_Click"/>
+                </Grid>
+                <TextBlock x:Name="TxtGrandesEstado" Text="Encuentra los archivos de más de 250 MB. Se borran a la papelera."
+                           Style="{StaticResource Caption}" Margin="0,4,0,0"/>
+                <ProgressBar x:Name="BarGrandes" Height="3" Margin="0,8,0,0" IsIndeterminate="True"
+                             Visibility="Collapsed"/>
+                <StackPanel x:Name="ListaGrandes" Margin="0,6,0,0"/>
+            </StackPanel>
+        </Border>
+
+    </StackPanel>
+</UserControl>

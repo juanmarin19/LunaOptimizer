@@ -90,6 +90,10 @@ public partial class ProcessesView : UserControl
 
     private void TxtFilter_TextChanged(object sender, TextChangedEventArgs e)
     {
+        if (TxtFilterHint is not null)
+            TxtFilterHint.Visibility = string.IsNullOrEmpty(TxtFilter.Text)
+                ? Visibility.Visible : Visibility.Collapsed;
+
         // Un unico timer reutilizado (antes se creaba uno por tecla, dejando
         // handlers colgando). Stop+Start = reinicia la cuenta (debounce).
         if (_filterTimer is null)

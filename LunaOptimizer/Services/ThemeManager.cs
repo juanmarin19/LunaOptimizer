@@ -24,12 +24,34 @@ internal static class ThemeManager
     {
         try
         {
-            string s = File.Exists(FileTema) ? File.ReadAllText(FileTema).Trim() : "oscuro";
-            Oscuro = !s.Equals("claro", StringComparison.OrdinalIgnoreCase);
+            if (File.Exists(FileTema))
+            {
+                string s = File.ReadAllText(FileTema).Trim();
+                Oscuro = s.Equals("oscuro", StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                // Primera vez: se sigue la preferencia de Windows (PC Manager lo hace igual).
+                Oscuro = SistemaOscuro();
+            }
         }
-        catch { Oscuro = true; }
+        catch { Oscuro = false; }
         Aplicar(Oscuro, guardar: false);
     }
+
+    private static bool SistemaOscuro()
+    {
+        try
+        {
+            using var clave = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+            return clave?.GetValue("AppsUseLightTheme") is int v && v == 0;
+        }
+        catch { return false; }
+    }
+
+    /// Fija el tema (Ajustes y boton de la barra de titulo).
+    public static void Set(bool oscuro) => Aplicar(oscuro, guardar: true);
 
     /// La ventana se registra tras inicializarse (hwnd disponible).
     public static void Registrar(Window win, FrameworkElement raiz, IntPtr hwnd)

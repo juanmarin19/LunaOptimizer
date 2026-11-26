@@ -1,42 +1,64 @@
 <UserControl x:Class="LunaOptimizer.Views.GamesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid Background="Transparent" Margin="0,4,0,0">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <StackPanel Background="Transparent">
 
-        <!-- Tarjeta principal: un clic -->
-        <Border Grid.Row="0" Style="{StaticResource Card}">
+        <Grid Margin="2,2,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="BtnBack" Grid.Column="0" Style="{StaticResource LinkBtn}" Click="BtnBack_Click"
+                    VerticalAlignment="Center" ToolTip="Volver">
+                <StackPanel Orientation="Horizontal">
+                    <Path Data="{StaticResource I.ChevronLeft}" Width="10" Height="10" Stretch="Uniform"
+                          Stroke="{DynamicResource B_Link}" StrokeThickness="2"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                          VerticalAlignment="Center"/>
+                    <TextBlock Text="Volver" FontSize="12" Margin="4,0,0,0" Foreground="{DynamicResource B_Link}"/>
+                </StackPanel>
+            </Button>
+            <TextBlock Grid.Column="1" Text="Modo juego" Style="{StaticResource H1}" Margin="10,0,0,0"/>
+        </Grid>
+        <TextBlock Text="Deja el equipo listo para jugar en un clic. No cambia nada de forma permanente."
+                   Style="{StaticResource Body}" Margin="2,4,0,10"/>
+
+        <Border Style="{StaticResource Card}">
             <StackPanel>
-                <TextBlock Text="Modo juego" FontSize="15" FontWeight="Bold"
-                           Foreground="{DynamicResource B_Text}"/>
-                <TextBlock Text="Cierra tus aplicaciones abiertas, libera RAM y purga la cache de memoria en un solo clic. Lo minimo para jugar sin reiniciar."
-                           FontSize="11" Foreground="{DynamicResource B_Sub}" TextWrapping="Wrap" Margin="0,6,0,0"/>
-                <Button x:Name="BtnGame" Content="Preparar para jugar" HorizontalAlignment="Left" Margin="0,12,0,0"
-                        Click="BtnGame_Click" Style="{StaticResource PrimaryBtn}"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Path Data="{StaticResource I.Gamepad}" Width="16" Height="16" Stretch="Uniform"
+                          Stroke="{DynamicResource B_Accent}" StrokeThickness="1.6"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <TextBlock Text="Preparar el equipo" Style="{StaticResource H2}" Margin="7,0,0,0"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock Text="Cierra tus aplicaciones abiertas, libera RAM y purga la cache de memoria. Lo minimo para jugar sin reiniciar."
+                           Style="{StaticResource Body}" Margin="0,6,0,0"/>
+                <Button x:Name="BtnGame" Content="Preparar para jugar" HorizontalAlignment="Stretch"
+                        Margin="0,12,0,0" Click="BtnGame_Click" Style="{StaticResource PrimaryBtn}"/>
             </StackPanel>
         </Border>
 
-        <!-- Progreso -->
-        <Border Grid.Row="1" Style="{StaticResource Card}">
+        <Border Style="{StaticResource Card}">
             <StackPanel>
-                <ProgressBar x:Name="BarGame" Height="6" Minimum="0" Maximum="100" Margin="0,0,0,6"/>
-                <Button x:Name="BtnCancelGame" Content="Cancelar" Click="BtnCancelGame_Click" Visibility="Collapsed"
-                        HorizontalAlignment="Left" Margin="0,0,0,6" Padding="12,5" FontSize="12"/>
-                <TextBlock x:Name="TxtGame" Text="Listo." FontSize="11" Foreground="{DynamicResource B_Sub}" TextWrapping="Wrap"/>
+                <ProgressBar x:Name="BarGame" Height="4" Minimum="0" Maximum="100" Margin="0,0,0,8"/>
+                <Grid>
+                    <TextBlock x:Name="TxtGame" Text="Listo." FontSize="11" Foreground="{DynamicResource B_Sub}"
+                               TextWrapping="Wrap" Margin="0,0,70,0"/>
+                    <Button x:Name="BtnCancelGame" Content="Cancelar" Click="BtnCancelGame_Click"
+                            Visibility="Collapsed" Style="{StaticResource LinkBtn}"
+                            HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                </Grid>
             </StackPanel>
         </Border>
 
-        <!-- Resultado -->
-        <Border Grid.Row="2" Style="{StaticResource Card}" VerticalAlignment="Top">
+        <Border Style="{StaticResource Card}" Margin="0,0,0,8">
             <StackPanel>
-                <TextBlock Text="Resultado" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource B_Text}"/>
-                <TextBlock x:Name="TxtResumen" FontSize="12" Foreground="{DynamicResource B_Sub}" TextWrapping="Wrap"
-                           Margin="0,8,0,0" Text="Todavia no has preparado el equipo."/>
+                <TextBlock Text="Resultado" Style="{StaticResource H2}"/>
+                <TextBlock x:Name="TxtResumen" FontSize="11" Foreground="{DynamicResource B_Sub}"
+                           TextWrapping="Wrap" Margin="0,7,0,0"
+                           Text="Todavia no has preparado el equipo."/>
             </StackPanel>
         </Border>
-    </Grid>
+    </StackPanel>
 </UserControl>

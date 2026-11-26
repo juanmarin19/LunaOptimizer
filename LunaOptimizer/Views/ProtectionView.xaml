@@ -1,0 +1,121 @@
+<UserControl x:Class="LunaOptimizer.Views.ProtectionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Background="Transparent">
+
+        <TextBlock Text="Protección" Style="{StaticResource H1}" Margin="2,2,0,0"/>
+        <TextBlock Text="Revisión de salud y antivirus de Windows, sin instalar nada mas."
+                   Style="{StaticResource Body}" Margin="2,3,0,10"/>
+
+        <!-- ===== Revisión de salud ===== -->
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" x:Name="ScoreRing" Width="66" Height="66" CornerRadius="33"
+                            BorderThickness="3" BorderBrush="{DynamicResource B_Track}"
+                            Background="{DynamicResource B_Panel}" VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock x:Name="TxtScore" Text="—" FontSize="21" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" Foreground="{DynamicResource B_Text}"/>
+                            <TextBlock Text="puntos" FontSize="8.5" HorizontalAlignment="Center"
+                                       Foreground="{DynamicResource B_Muted}" Margin="0,-2,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtRevTitulo" Text="Revisa el estado de tu PC" Style="{StaticResource H2}"
+                                   TextWrapping="Wrap"/>
+                        <TextBlock x:Name="TxtRevDetalle" Text="Se comprueban temporales, memoria, disco, arranque, antivirus y limpieza."
+                                   Style="{StaticResource Body}" Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Grid>
+
+                <Button x:Name="BtnRevisar" Content="Revisar ahora" Style="{StaticResource PrimaryBtn}"
+                        Margin="0,12,0,0" HorizontalAlignment="Stretch" Click="BtnRevisar_Click"/>
+
+                <ProgressBar x:Name="BarRev" Height="3" Margin="0,12,0,0" IsIndeterminate="True"
+                             Visibility="Collapsed"/>
+                <TextBlock x:Name="TxtRevProgreso" Text="" FontSize="10.5" Foreground="{DynamicResource B_Muted}"
+                           Margin="0,6,0,0"/>
+
+                <StackPanel x:Name="ListaRevision" Margin="0,10,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ===== Antivirus ===== -->
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Path Data="{StaticResource I.Shield}" Width="15" Height="15" Stretch="Uniform"
+                              Stroke="{DynamicResource B_Accent}" StrokeThickness="1.6"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                        <TextBlock Text="Antivirus de Windows" Style="{StaticResource H2}" Margin="7,0,0,0"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock x:Name="TxtDefEstado" Text="Comprobando..." FontSize="10.5"
+                               Foreground="{DynamicResource B_Sub}" HorizontalAlignment="Right"
+                               VerticalAlignment="Center"/>
+                </Grid>
+
+                <Grid Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Protección en tiempo real" Style="{StaticResource Caption}"/>
+                        <TextBlock x:Name="TxtDefTiempoReal" Text="—" FontSize="12.5" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource B_Text}" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Último examen" Style="{StaticResource Caption}"/>
+                        <TextBlock x:Name="TxtDefExamen" Text="—" FontSize="12.5" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource B_Text}" Margin="0,2,0,0"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" x:Name="BtnExamen" Content="Examen rápido" Style="{StaticResource SecondaryBtn}"
+                            Click="BtnExamen_Click" HorizontalAlignment="Left"/>
+                    <Button Grid.Column="1" x:Name="BtnSeguridad" Content="Abrir Seguridad de Windows"
+                            Style="{StaticResource LinkBtn}" Click="BtnSeguridad_Click" VerticalAlignment="Center"/>
+                </Grid>
+
+                <ProgressBar x:Name="BarExamen" Height="3" Margin="0,10,0,0" IsIndeterminate="True"
+                             Visibility="Collapsed"/>
+                <TextBlock x:Name="TxtExamen" Text="" FontSize="10.5" Foreground="{DynamicResource B_Sub}"
+                           TextWrapping="Wrap" Margin="0,6,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ===== Ventanas emergentes ===== -->
+        <Border Style="{StaticResource Card}" Margin="0,0,0,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                    <TextBlock Text="Ventanas emergentes" FontSize="12.5" FontWeight="SemiBold"
+                               Foreground="{DynamicResource B_Text}"/>
+                    <TextBlock Text="Windows permite silenciar los avisos de las aplicaciónes que no quieras ver. Se abre en Configuración > Notificaciones."
+                               FontSize="10.5" Foreground="{DynamicResource B_Sub}" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="Abrir" Style="{StaticResource SecondaryBtn}"
+                        VerticalAlignment="Center" Click="BtnNotificaciones_Click"/>
+            </Grid>
+        </Border>
+
+    </StackPanel>
+</UserControl>

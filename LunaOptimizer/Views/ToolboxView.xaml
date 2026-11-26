@@ -1,0 +1,101 @@
+<UserControl x:Class="LunaOptimizer.Views.ToolboxView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Background="Transparent">
+
+        <TextBlock Text="Herramientas" Style="{StaticResource H1}" Margin="2,2,0,0"/>
+        <TextBlock Text="Funciones de LunaOptimizer y accesos directos a las utilidades de Windows."
+                   Style="{StaticResource Body}" Margin="2,3,0,10"/>
+
+        <!-- Modos de optimizacion -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Tile}" Margin="0,0,4,8"
+                    MouseLeftButtonUp="GoGames" MinHeight="92">
+                <StackPanel>
+                    <Border Width="30" Height="30" CornerRadius="8" Background="{DynamicResource B_AccentSoft}"
+                            HorizontalAlignment="Left">
+                        <Path Data="{StaticResource I.Gamepad}" Width="15" Height="15" Stretch="Uniform"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Stroke="{DynamicResource B_Accent}" StrokeThickness="1.6"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    </Border>
+                    <TextBlock Text="Modo juego" FontSize="12.5" FontWeight="SemiBold" Margin="0,8,0,0"
+                               Foreground="{DynamicResource B_Text}"/>
+                    <TextBlock Text="Cierra apps, libera RAM y limpia antes de jugar." FontSize="10"
+                               Foreground="{DynamicResource B_Sub}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Tile}" Margin="4,0,0,8"
+                    MouseLeftButtonUp="GoHealth" MinHeight="92">
+                <StackPanel>
+                    <Border Width="30" Height="30" CornerRadius="8" Background="{DynamicResource B_AccentSoft}"
+                            HorizontalAlignment="Left">
+                        <Path Data="{StaticResource I.Pulse}" Width="16" Height="16" Stretch="Uniform"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Stroke="{DynamicResource B_Accent}" StrokeThickness="1.6"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    </Border>
+                    <TextBlock Text="Rendimiento" FontSize="12.5" FontWeight="SemiBold" Margin="0,8,0,0"
+                               Foreground="{DynamicResource B_Text}"/>
+                    <TextBlock Text="Servicios y ajustes de Windows para jugar." FontSize="10"
+                               Foreground="{DynamicResource B_Sub}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Tile}" Margin="0,0,4,8"
+                    MouseLeftButtonUp="GoStartup" MinHeight="92">
+                <StackPanel>
+                    <Border Width="30" Height="30" CornerRadius="8" Background="{DynamicResource B_AccentSoft}"
+                            HorizontalAlignment="Left">
+                        <Path Data="{StaticResource I.Power}" Width="15" Height="15" Stretch="Uniform"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Stroke="{DynamicResource B_Accent}" StrokeThickness="1.6"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    </Border>
+                    <TextBlock Text="Arranque" FontSize="12.5" FontWeight="SemiBold" Margin="0,8,0,0"
+                               Foreground="{DynamicResource B_Text}"/>
+                    <TextBlock Text="Quita apps del inicio de Windows." FontSize="10"
+                               Foreground="{DynamicResource B_Sub}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource Tile}" Margin="4,0,0,8"
+                    MouseLeftButtonUp="GoDeep" MinHeight="92">
+                <StackPanel>
+                    <Border Width="30" Height="30" CornerRadius="8" Background="{DynamicResource B_AccentSoft}"
+                            HorizontalAlignment="Left">
+                        <Path Data="{StaticResource I.Trash}" Width="15" Height="15" Stretch="Uniform"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Stroke="{DynamicResource B_Accent}" StrokeThickness="1.6"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    </Border>
+                    <TextBlock Text="Limpieza profunda" FontSize="12.5" FontWeight="SemiBold" Margin="0,8,0,0"
+                               Foreground="{DynamicResource B_Text}"/>
+                    <TextBlock Text="Caches de apps, sistema y papelera." FontSize="10"
+                               Foreground="{DynamicResource B_Sub}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Utilidades de Windows -->
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="Utilidades de Windows" Style="{StaticResource H2}"/>
+                <TextBlock Text="Se abren las herramientas del propio Windows, sin instalar nada."
+                           Style="{StaticResource Caption}" Margin="0,3,0,6"/>
+                <StackPanel x:Name="ListaUtilidades"/>
+            </StackPanel>
+        </Border>
+
+    </StackPanel>
+</UserControl>

@@ -9,10 +9,23 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-            <Button x:Name="BtnBack" Content="&#x2190; Volver" Click="BtnBack_Click"
-                    Padding="10,4" FontSize="12" Margin="0" Background="Transparent"/>
-        </StackPanel>
+        <Grid Grid.Row="0" Margin="2,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" x:Name="BtnBack" Style="{StaticResource LinkBtn}" Click="BtnBack_Click"
+                    VerticalAlignment="Center" ToolTip="Volver">
+                <StackPanel Orientation="Horizontal">
+                    <Path Data="{StaticResource I.ChevronLeft}" Width="10" Height="10" Stretch="Uniform"
+                          Stroke="{DynamicResource B_Link}" StrokeThickness="2"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                          VerticalAlignment="Center"/>
+                    <TextBlock Text="Volver" FontSize="12" Margin="4,0,0,0" Foreground="{DynamicResource B_Link}"/>
+                </StackPanel>
+            </Button>
+            <TextBlock Grid.Column="1" Text="Limpieza profunda" Style="{StaticResource H1}" Margin="10,0,0,0"/>
+        </Grid>
 
         <Border Grid.Row="1" Style="{StaticResource Card}">
             <Grid>
@@ -29,7 +42,7 @@
                           StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                 </Border>
                 <StackPanel Grid.Column="1" Margin="11,0,9,0">
-                    <TextBlock x:Name="TxtHead" Text="Se detectaron 0 elementos para limpiar"
+                    <TextBlock x:Name="TxtHead" Text="Se detectaron 0 para limpiar"
                                FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource B_Text}" TextWrapping="Wrap"/>
                     <TextBlock x:Name="TxtHeadSub" Text="Preparando el analisis..."
                                FontSize="11" Foreground="{DynamicResource B_Sub}" Margin="0,5,0,0" TextWrapping="Wrap"/>
@@ -73,7 +86,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Otros elementos de la aplicacion" FontSize="12.5" Foreground="{DynamicResource B_TextSoft}"
+                        <TextBlock Grid.Column="0" Text="Otros elementos de la aplicación" FontSize="12.5" Foreground="{DynamicResource B_TextSoft}"
                                    VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                         <TextBlock Grid.Column="1" x:Name="St2" Text="Esperando a examinar..." FontSize="11.5"
                                    Foreground="{DynamicResource B_Sub}" VerticalAlignment="Center" Margin="8,0,0,0"/>

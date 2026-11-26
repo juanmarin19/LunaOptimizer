@@ -14,7 +14,7 @@
                     Padding="14,8" FontSize="12" Margin="0" HorizontalAlignment="Stretch" Click="BtnDeep_Click"/>
         </Border>
 
-        <!-- Lista de aplicaciones detectadas -->
+        <!-- Lista de aplicaciónes detectadas -->
         <Border Grid.Row="1" Background="{DynamicResource B_Bg}" CornerRadius="10"
                 BorderBrush="{DynamicResource B_BorderSoft}" BorderThickness="1">
             <Grid>
@@ -44,7 +44,7 @@
                 </ListView>
 
                 <!-- Estado vacio -->
-                <TextBlock x:Name="TxtEmpty" Text="Buscando aplicaciones instaladas..." FontSize="12"
+                <TextBlock x:Name="TxtEmpty" Text="Buscando aplicaciónes instaladas..." FontSize="12"
                            Foreground="{DynamicResource B_Sub}" TextWrapping="Wrap" TextAlignment="Center"
                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24"/>
             </Grid>

@@ -1,0 +1,60 @@
+<UserControl x:Class="LunaOptimizer.Views.StartupView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Background="Transparent">
+
+        <Grid Margin="2,2,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" x:Name="BtnBack" Style="{StaticResource LinkBtn}" Click="BtnBack_Click"
+                    VerticalAlignment="Center" ToolTip="Volver">
+                <StackPanel Orientation="Horizontal">
+                    <Path Data="{StaticResource I.ChevronLeft}" Width="10" Height="10" Stretch="Uniform"
+                          Stroke="{DynamicResource B_Link}" StrokeThickness="2"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                          VerticalAlignment="Center"/>
+                    <TextBlock Text="Volver" FontSize="12" Margin="4,0,0,0" Foreground="{DynamicResource B_Link}"/>
+                </StackPanel>
+            </Button>
+            <TextBlock Grid.Column="1" Text="Aplicaciónes de arranque" Style="{StaticResource H1}" Margin="10,0,0,0"/>
+        </Grid>
+        <TextBlock Text="Lo que se abre al encender el PC. Desactivar no borra nada: se puede volver a activar."
+                   Style="{StaticResource Body}" Margin="2,4,0,10"/>
+
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Tiempo de arranque" Style="{StaticResource Caption}"/>
+                    <TextBlock x:Name="TxtBoot" Text="—" FontSize="18" FontWeight="SemiBold"
+                               Foreground="{DynamicResource B_Text}" Margin="0,2,0,0"/>
+                    <TextBlock Text="Último arranque medido por Windows" Style="{StaticResource Caption}"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <TextBlock x:Name="TxtCuenta" Text="—" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{DynamicResource B_Link}" HorizontalAlignment="Right"/>
+                    <TextBlock Text="activas" Style="{StaticResource Caption}" HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Style="{StaticResource Card}" Margin="0,0,0,8">
+            <StackPanel>
+                <Grid Margin="0,0,0,6">
+                    <TextBlock Text="Se inician con Windows" Style="{StaticResource H2}"/>
+                    <Button Content="Actualizar" Style="{StaticResource LinkBtn}" HorizontalAlignment="Right"
+                            VerticalAlignment="Center" Click="BtnRefresh_Click"/>
+                </Grid>
+                <StackPanel x:Name="ListaArranque"/>
+                <TextBlock x:Name="TxtVacio" Text="Cargando..." Style="{StaticResource Caption}" Margin="0,6,0,0"/>
+            </StackPanel>
+        </Border>
+
+    </StackPanel>
+</UserControl>
