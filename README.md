@@ -25,6 +25,22 @@ grande para mejorar el rendimiento.
 | — | **Smart Boost**: optimiza solo cuando la RAM o los temporales pasan del umbral |
 | — | **Inicio con Windows** desde Ajustes, con umbrales configurables |
 
+### Pantalla de limpieza estilo PC Manager (2.2)
+
+- **Cabecera**: `Un total de X elementos detectados` + `Seleccionado: Y` + botón **Continuar**.
+- **Árbol de casillas** igual que PC Manager: categoría → subcategoría → elemento.
+  `Elementos recomendados` contiene **Elementos de la aplicación** (una fila por app con su
+  caché: Chrome, Discord, Steam…) y **Elementos del sistema** (archivos temporales, caché de
+  miniaturas, caché de sombreadores). Debajo: `Otros elementos del sistema` (Windows Update,
+  optimización de entrega, informes de errores), `Seguimientos de uso del equipo` y `Papelera
+  de reciclaje`.
+- Cada fila tiene su casilla y su tamaño; las categorías muestran **seleccionado/total**
+  (`297MB/297MB`) y las casillas de arriba marcan o desmarcan todo su contenido.
+- Solo se listan elementos **con contenido real**, y las reglas de componentes de Windows
+  (Update, logs, instalador, papelera, prefetch) ya no se ofrecen como "aplicaciones": las
+  cubren los elementos del sistema.
+- La caché de sombreadores aparece **desmarcada con aviso** si hay vídeo o juego en curso.
+
 ### Vista previa y navegadores (2.1)
 
 - **Antes de borrar, se ve qué se va a borrar**: cada categoría se despliega con la
@@ -56,7 +72,7 @@ Un TEMP de 30.000 archivos pasó de **~43 s a ~4 s**. Lo que se cambió:
 ## Descargar
 
 1. Entra en **[Releases](../../releases/latest)** y descarga el `.exe`
-   (**`LunaOptimizer-V2.1.0.exe`**).
+   (**`LunaOptimizer-V2.2.0.exe`**).
 2. Doble clic → acepta el **UAC** (Windows pide permiso de administrador).
 3. Listo: no hay instalador, puedes dejarlo en el Escritorio o en una memoria USB.
 
@@ -147,12 +163,16 @@ Lista las **aplicaciones instaladas** con el espacio que ocupan sus datos de cac
 
 1. **Examinando** → barra de progreso, el elemento actual y los cinco grupos pasando de
    _Esperando a examinar…_ a _Descubierto X_.
-2. Al terminar se muestra el **detalle de lo que se va a borrar**: una tarjeta por
-   categoría con su casilla, tamaño y, al desplegarla, la lista de archivos (nombre,
-   carpeta y tamaño) o de aplicaciones con su caché. La primera categoría se abre sola.
-3. **Destilda** lo que quieras conservar: el botón y los totales se recalculan
-   (`Limpiar 640 MB`), y lo que quede sin marcar no se toca.
-4. **Limpiar** → pide confirmación → borra y muestra lo liberado por grupo.
+2. Al terminar, la cabecera resume `Un total de 567MB elementos detectados` y
+   `Seleccionado: 567MB`, y debajo aparece el **árbol de casillas** con lo que se va a
+   borrar: `Elementos recomendados` → `Elementos de la aplicación` (una fila por app:
+   `Caché de Google Chrome 213MB`, `Caché de Discord 15MB`…) y `Elementos del sistema`
+   (`Archivos temporales 35MB`, `Caché de miniaturas 8.0MB`, `Caché de sombreadores`),
+   más `Otros elementos del sistema`, `Seguimientos de uso del equipo` y `Papelera de
+   reciclaje`. Cada categoría muestra **seleccionado/total**.
+3. **Destilda** una categoría, una subcategoría o un elemento suelto: `Seleccionado` y el
+   botón se recalculan y lo desmarcado no se toca.
+4. **Continuar** → pide confirmación → borra y muestra lo liberado.
 5. **← Volver** regresa a la pestaña anterior.
 
 > **Navegadores:** historial, contraseñas, cookies, sesiones y marcadores quedan intactos;

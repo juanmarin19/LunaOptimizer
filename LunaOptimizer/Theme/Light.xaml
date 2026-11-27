@@ -30,6 +30,10 @@
     <SolidColorBrush x:Key="B_Link" Color="#1769C4"/>
     <SolidColorBrush x:Key="B_OnAccent" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="B_AccentSoft" Color="#E8F2FC"/>
+    <SolidColorBrush x:Key="B_Cta" Color="#0F62B3"/>
+    <SolidColorBrush x:Key="B_CtaHover" Color="#1A72C7"/>
+    <SolidColorBrush x:Key="B_CtaPressed" Color="#0B4E8F"/>
+    <SolidColorBrush x:Key="B_OnCta" Color="#FFFFFF"/>
 
     <SolidColorBrush x:Key="B_Green" Color="#0F7B3F"/>
     <SolidColorBrush x:Key="B_GreenSoft" Color="#E6F5EC"/>

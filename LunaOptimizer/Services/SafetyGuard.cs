@@ -80,6 +80,11 @@ public static class SafetyGuard
         Add(Path.Combine(win, "Fonts"));
         Add(Path.Combine(win, "INF"));
         Add(Path.Combine(win, "SystemApps"));
+        // Registros de eventos, cache de Windows Installer y logs: no son cache de
+        // aplicaciones y borrarlos rompe el visor de eventos o los desinstaladores.
+        Add(Path.Combine(win, "winevt"));
+        Add(Path.Combine(win, "Installer"));
+        Add(Path.Combine(win, "Logs"));
         Add(Path.Combine(win, "ImmersiveControlPanel"));
         Add(Path.Combine(win, "Provisioning"));
         Add(Path.Combine(win, "System32", "drivers"));

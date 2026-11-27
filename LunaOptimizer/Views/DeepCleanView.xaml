@@ -22,122 +22,48 @@
             <TextBlock Grid.Column="1" Text="Limpieza profunda" Style="{StaticResource H1}" Margin="10,0,0,0"/>
         </Grid>
 
-        <!-- Estado del analisis / limpieza -->
-        <Border Style="{StaticResource Card}">
-            <StackPanel>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="42" Height="42" CornerRadius="10"
-                            Background="{DynamicResource B_Chip}" VerticalAlignment="Top">
-                        <Path Data="{StaticResource I.Trash}" Width="19" Height="19" Stretch="Uniform"
-                              HorizontalAlignment="Center" VerticalAlignment="Center"
-                              Stroke="{DynamicResource B_Accent}" StrokeThickness="1.7"
-                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                    </Border>
-                    <StackPanel Grid.Column="1" Margin="11,0,0,0">
-                        <TextBlock x:Name="TxtHead" Text="Preparando el analisis..."
-                                   FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource B_Text}"
-                                   TextWrapping="Wrap"/>
-                        <TextBlock x:Name="TxtHeadSub" Text="" FontSize="11"
-                                   Foreground="{DynamicResource B_Sub}" Margin="0,4,0,0" TextWrapping="Wrap"/>
-                        <ProgressBar x:Name="BarScan" Height="4" Margin="0,9,0,0" Maximum="100" Value="0"/>
-                    </StackPanel>
-                </Grid>
-
-                <Button x:Name="BtnAction" Content="Cancelar" Click="BtnAction_Click" Margin="0,12,0,0"
-                        HorizontalAlignment="Stretch" Style="{StaticResource SecondaryBtn}"/>
-            </StackPanel>
-        </Border>
-
-        <!-- Aviso: que se respeta siempre -->
-        <Border Style="{StaticResource Card}" Padding="12,10">
+        <!-- Resumen + accion, como PC Manager -->
+        <Border Style="{StaticResource Card}" Padding="12,12,12,12">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Path Grid.Column="0" Data="{StaticResource I.Shield}" Width="14" Height="14" Stretch="Uniform"
-                      VerticalAlignment="Top" Margin="0,1,8,0"
-                      Stroke="{DynamicResource B_Green}" StrokeThickness="1.7"
-                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                <TextBlock Grid.Column="1" FontSize="10.5" Foreground="{DynamicResource B_Sub}" TextWrapping="Wrap"
-                           Text="Los datos de los navegadores (historial, contraseñas, cookies, sesiones y marcadores) están protegidos: de Chrome, Edge, Firefox, Brave, Opera y Vivaldi solo se borra la caché."/>
+
+                <Border Grid.Column="0" Width="56" Height="56" CornerRadius="10" VerticalAlignment="Top">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#63B3F2" Offset="0"/>
+                            <GradientStop Color="#2B7BD0" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Path Data="{StaticResource I.Trash}" Width="24" Height="24" Stretch="Uniform"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Stroke="White" StrokeThickness="1.8"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center">
+                    <TextBlock x:Name="TxtHead" Text="Analizando el equipo..." FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource B_Text}" TextWrapping="Wrap" LineHeight="19"/>
+                    <TextBlock x:Name="TxtSel" Text="" FontSize="11.5" Margin="0,3,0,0"
+                               Foreground="{DynamicResource B_Link}" TextWrapping="Wrap"/>
+                    <ProgressBar x:Name="BarScan" Height="3" Margin="0,8,0,0" Maximum="100" Value="0"
+                                 Visibility="Collapsed"/>
+                </StackPanel>
+
+                <Button Grid.Column="2" x:Name="BtnAction" Content="Continuar" Style="{StaticResource CtaBtn}"
+                        VerticalAlignment="Center" Click="BtnAction_Click"/>
             </Grid>
         </Border>
 
-        <!-- Durante el analisis: las cinco categorias con su estado -->
-        <Border x:Name="PanelProgreso" Style="{StaticResource Card}" Padding="14,6">
-            <StackPanel>
-                <Border BorderBrush="{DynamicResource B_BorderSoft}" BorderThickness="0,0,0,1" Padding="0,9">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Elementos recomendados" FontSize="12" Foreground="{DynamicResource B_TextSoft}"
-                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Grid.Column="1" x:Name="St0" Text="Esperando a examinar..." FontSize="10.5"
-                                   Foreground="{DynamicResource B_Sub}" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                    </Grid>
-                </Border>
-                <Border BorderBrush="{DynamicResource B_BorderSoft}" BorderThickness="0,0,0,1" Padding="0,9">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Otros elementos del sistema" FontSize="12" Foreground="{DynamicResource B_TextSoft}"
-                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Grid.Column="1" x:Name="St1" Text="Esperando a examinar..." FontSize="10.5"
-                                   Foreground="{DynamicResource B_Sub}" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                    </Grid>
-                </Border>
-                <Border BorderBrush="{DynamicResource B_BorderSoft}" BorderThickness="0,0,0,1" Padding="0,9">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Otros elementos de la aplicación" FontSize="12" Foreground="{DynamicResource B_TextSoft}"
-                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Grid.Column="1" x:Name="St2" Text="Esperando a examinar..." FontSize="10.5"
-                                   Foreground="{DynamicResource B_Sub}" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                    </Grid>
-                </Border>
-                <Border BorderBrush="{DynamicResource B_BorderSoft}" BorderThickness="0,0,0,1" Padding="0,9">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Seguimientos de uso del equipo" FontSize="12" Foreground="{DynamicResource B_TextSoft}"
-                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Grid.Column="1" x:Name="St3" Text="Esperando a examinar..." FontSize="10.5"
-                                   Foreground="{DynamicResource B_Sub}" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                    </Grid>
-                </Border>
-                <Border Padding="0,9">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Papelera de reciclaje" FontSize="12" Foreground="{DynamicResource B_TextSoft}"
-                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Grid.Column="1" x:Name="St4" Text="Esperando a examinar..." FontSize="10.5"
-                                   Foreground="{DynamicResource B_Sub}" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                    </Grid>
-                </Border>
-            </StackPanel>
+        <!-- Arbol de elementos a borrar -->
+        <Border Style="{StaticResource Card}" Padding="10,4,8,6">
+            <StackPanel x:Name="PanelArbol"/>
         </Border>
 
-        <!-- Tras el analisis: detalle de lo que se va a borrar -->
-        <StackPanel x:Name="PanelResultados" Visibility="Collapsed"/>
-
         <TextBlock x:Name="TxtStatus" Text="" FontSize="10.5" Foreground="{DynamicResource B_Muted}"
-                   Margin="2,4,0,8" TextWrapping="Wrap"/>
+                   Margin="2,2,0,8" TextWrapping="Wrap"/>
     </StackPanel>
 </UserControl>

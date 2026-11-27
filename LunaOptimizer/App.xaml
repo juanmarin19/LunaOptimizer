@@ -144,6 +144,44 @@
             </Setter>
         </Style>
 
+        <!-- Boton de accion principal de la limpieza (PC Manager: azul claro en
+             oscuro, con texto oscuro) -->
+        <Style x:Key="CtaBtn" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource B_Cta}"/>
+            <Setter Property="Foreground" Value="{DynamicResource B_OnCta}"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"
+                                              TextElement.FontSize="{TemplateBinding FontSize}"
+                                              TextElement.FontWeight="{TemplateBinding FontWeight}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B_CtaHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B_CtaPressed}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B_ButtonDisabled}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource B_DisabledText}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Enlace de texto azul, como "Set Smart Boost" de PC Manager -->
         <Style x:Key="LinkBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
