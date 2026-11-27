@@ -141,6 +141,36 @@ public static class SafetyGuard
         catch { motivo = "ruta invalida"; return false; }
     }
 
+    /// Igual que <see cref="CanDelete(FileInfo, out string, bool)"/> pero con los
+    /// metadatos ya leidos (atributos y fecha UTC). La limpieza de temporales borra
+    /// decenas de miles de archivos: repetir stat() por archivo solo para las reglas
+    /// de seguridad era media limpieza.
+    public static bool CanDeleteConMetadata(string path, FileAttributes atributos, DateTime escrituraUtc,
+        bool protegerEjecutables, out string motivo)
+    {
+        motivo = "";
+        if (string.IsNullOrWhiteSpace(path)) { motivo = "ruta vacia"; return false; }
+
+        // Rutas absolutas y sin "..": aqui NO se normaliza (es la ruta caliente), asi
+        // que una ruta con "..\" podria colarse en una zona protegida. Los recorridos
+        // siempre dan rutas absolutas y limpias; cualquier otra cosa se rechaza.
+        if (!Path.IsPathRooted(path) || path.Contains("..", StringComparison.Ordinal))
+        { motivo = "ruta relativa o con puntos"; return false; }
+
+        if (!RutaPermitida(path, out motivo)) return false;
+
+        if ((atributos & FileAttributes.ReparsePoint) != 0) { motivo = "es un enlace (reparse point)"; return false; }
+
+        if (protegerEjecutables && ExtensionesProtegidas.Contains(Path.GetExtension(path)))
+        { motivo = "extension protegida " + Path.GetExtension(path); return false; }
+
+        if (MinutosRecientes > 0 &&
+            (DateTime.UtcNow - escrituraUtc) < TimeSpan.FromMinutes(MinutosRecientes))
+        { motivo = $"modificado hace menos de {MinutosRecientes} min"; return false; }
+
+        return true;
+    }
+
     /// Permite borrar una CARPETA que esta vacia. No aplica controles de extension
     /// (es un directorio); si aplica zona protegida y reparse point.
     public static bool CanDeleteEmptyDir(string dir)
@@ -176,32 +206,52 @@ public static class SafetyGuard
         catch { return false; }
     }
 
+    /// Quita separadores finales sin asignar memoria (TrimEnd de spans solo acepta
+    /// un conjunto de chars como ReadOnlySpan, no dos chars sueltos).
+    private static ReadOnlySpan<char> RecortarSeparadores(ReadOnlySpan<char> s)
+    {
+        int fin = s.Length;
+        while (fin > 0 && (s[fin - 1] == '\\' || s[fin - 1] == '/')) fin--;
+        return s[..fin];
+    }
+
     /// Reglas que dependen solo de la ruta (raiz de disco y zonas protegidas).
-    private static bool RutaPermitida(string full, out string motivo)
+    /// Version string: se usa cuando la ruta y sus metadatos ya estan en mano.
+    private static bool RutaPermitida(string full, out string motivo) => RutaPermitida(full.AsSpan(), out motivo);
+
+    /// Igual que la anterior pero sin asignaciones: con 60.000 archivos la version
+    /// que hacia TrimEnd + "\\" + Path.GetPathRoot dejaba megas de basura al GC.
+    private static bool RutaPermitida(ReadOnlySpan<char> full, out string motivo)
     {
         motivo = "";
-        if (string.IsNullOrWhiteSpace(full)) { motivo = "ruta vacia"; return false; }
+        if (full.IsEmpty) { motivo = "ruta vacia"; return false; }
 
-        string conSep = full.TrimEnd('\\', '/') + "\\";
+        ReadOnlySpan<char> recortada = RecortarSeparadores(full);
 
         // Raiz de disco (C:\, D:\): jamas.
         try
         {
-            var root = Path.GetPathRoot(full);
-            if (!string.IsNullOrEmpty(root) &&
-                conSep.Equals(root.TrimEnd('\\', '/') + "\\", StringComparison.OrdinalIgnoreCase))
+            ReadOnlySpan<char> raiz = Path.GetPathRoot(full);
+            if (!raiz.IsEmpty && recortada.Equals(RecortarSeparadores(raiz), StringComparison.OrdinalIgnoreCase))
             { motivo = "raiz de disco"; return false; }
         }
         catch { motivo = "ruta invalida"; return false; }
 
         // El propio ejecutable de LunaOptimizer: jamas.
         if (ExePropio.Length > 0 &&
-            full.TrimEnd('\\', '/').Equals(ExePropio, StringComparison.OrdinalIgnoreCase))
+            recortada.Equals(ExePropio.AsSpan(), StringComparison.OrdinalIgnoreCase))
         { motivo = "es el ejecutable de LunaOptimizer"; return false; }
 
+        // Los prefijos se guardan con separador final, asi que cualquier ruta DENTRO
+        // de la zona protegida empieza por ellos. Se compara ademas la carpeta exacta
+        // (sin separador) porque tambien se llama para borrar carpetas vacias.
         foreach (var pref in PrefijosProtegidos)
-            if (conSep.StartsWith(pref, StringComparison.OrdinalIgnoreCase))
+        {
+            var p = pref.AsSpan();
+            if (full.StartsWith(p, StringComparison.OrdinalIgnoreCase) ||
+                (p.Length > 1 && recortada.Equals(p[..^1], StringComparison.OrdinalIgnoreCase)))
             { motivo = "zona protegida: " + pref.TrimEnd('\\'); return false; }
+        }
 
         return true;
     }

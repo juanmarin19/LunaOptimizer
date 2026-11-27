@@ -193,6 +193,8 @@ public partial class HomeView : UserControl
     {
         BtnBoost.IsEnabled = false;
         BarAct.Visibility = Visibility.Visible;
+        BarAct.IsIndeterminate = false;
+        BarAct.Value = 0;
         BtnCancel.Visibility = Visibility.Visible;
         TxtHint.Text = "Optimizando memoria...";
         _cts = new CancellationTokenSource();
@@ -201,7 +203,9 @@ public partial class HomeView : UserControl
             var boost = await Task.Run(() => MemoryBoost.Boost());
             TxtHint.Text = "Borrando temporales...";
             var prog = new Progress<string>(s => TxtHint.Text = s);
-            var r = await TempCleaner.QuickCleanAsync(prog, _cts.Token);
+            long totalTemps = await Task.Run(() => TempCleaner.MeasureTemp().bytes);
+            var avance = new Progress<double>(p => { if (p > BarAct.Value) BarAct.Value = p; });
+            var r = await TempCleaner.QuickCleanAsync(prog, _cts.Token, null, avance, totalTemps);
 
             TxtHint.Text = ResumenBoost(boost.trimmed, boost.multimedia, boost.usoAntesMB, boost.usoDespuesMB, r)
                            + $" ({DateTime.Now:HH:mm}).";
@@ -220,6 +224,7 @@ public partial class HomeView : UserControl
             _cts?.Dispose();
             _cts = null;
             BarAct.Visibility = Visibility.Collapsed;
+            BarAct.IsIndeterminate = true;
             BtnCancel.Visibility = Visibility.Collapsed;
             BtnBoost.IsEnabled = true;
         }
@@ -261,13 +266,17 @@ public partial class HomeView : UserControl
         BtnQuickClean.IsEnabled = false;
         BtnBoost.IsEnabled = false;
         BarAct.Visibility = Visibility.Visible;
+        BarAct.IsIndeterminate = false;
+        BarAct.Value = 0;
         BtnCancel.Visibility = Visibility.Visible;
         _cts = new CancellationTokenSource();
         var prog = new Progress<string>(s => TxtHint.Text = s);
         try
         {
             var (closed, failedClose) = await Task.Run(() => ProcessService.CloseAllApps(prog));
-            var r = await TempCleaner.QuickCleanAsync(prog, _cts.Token);
+            long totalTemps = await Task.Run(() => TempCleaner.MeasureTemp().bytes);
+            var avance = new Progress<double>(p => { if (p > BarAct.Value) BarAct.Value = p; });
+            var r = await TempCleaner.QuickCleanAsync(prog, _cts.Token, null, avance, totalTemps);
             var boost = await Task.Run(() => MemoryBoost.Boost());
 
             string extra = failedClose > 0 ? $", {failedClose} protegidos" : "";
@@ -292,6 +301,7 @@ public partial class HomeView : UserControl
             _cts?.Dispose();
             _cts = null;
             BarAct.Visibility = Visibility.Collapsed;
+            BarAct.IsIndeterminate = true;
             BtnCancel.Visibility = Visibility.Collapsed;
             BtnQuickClean.IsEnabled = true;
             BtnBoost.IsEnabled = true;

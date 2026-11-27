@@ -25,12 +25,27 @@ grande para mejorar el rendimiento.
 | — | **Smart Boost**: optimiza solo cuando la RAM o los temporales pasan del umbral |
 | — | **Inicio con Windows** desde Ajustes, con umbrales configurables |
 
+### Rendimiento de la limpieza (2.0.1)
+
+Un TEMP de 30.000 archivos pasó de **~43 s a ~4 s**. Lo que se cambió:
+
+- **Una lectura de metadatos por archivo** (`GetFileAttributesExW`) en lugar de
+  `Exists + Attributes + LastWriteTime + Length`, y borrado con `DeleteFileW`.
+- **Borrado en paralelo** (4-8 hilos) por lotes, manteniendo la enumeración en un solo hilo.
+- **Sin comprobación de existencia** después de borrar en los archivos pequeños
+  (solo en los de más de 1 MB, donde la precisión importa).
+- La pasada de **carpetas vacías** ya no recorre el árbol entero: solo sube desde las
+  carpetas que perdieron archivos. Era el 80 % del tiempo.
+- La tarjeta de Inicio **cachea la medida de temporales** 20 s en vez de recorrer el TEMP
+  cada vez que entras o cada minuto con Smart Boost.
+- La barra de progreso ahora **avanza con los bytes liberados**, no en modo indeterminado.
+
 ---
 
 ## Descargar
 
 1. Entra en **[Releases](../../releases/latest)** y descarga el `.exe`
-   (**`LunaOptimizer-V2.0.exe`**).
+   (**`LunaOptimizer-V2.0.1.exe`**).
 2. Doble clic → acepta el **UAC** (Windows pide permiso de administrador).
 3. Listo: no hay instalador, puedes dejarlo en el Escritorio o en una memoria USB.
 
