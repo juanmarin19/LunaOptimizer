@@ -35,6 +35,9 @@ public static class ScanEngine
                 // excluir protegidos (extensiones navegador)
                 if (file.Contains(@"\IndexedDB\chrome-extension_", StringComparison.OrdinalIgnoreCase)) continue;
                 if (IsFileExcluded(file, fileExcludes)) continue;
+                // Datos de navegador (historial, cookies, sesiones, logins): no se
+                // ofrecen siquiera para borrar. Solo su cache pasa el filtro.
+                if (BrowserGuard.EsDatoProtegido(file)) continue;
                 long size;
                 try
                 {
@@ -315,6 +318,9 @@ public static class ScanEngine
             // Columna vertebral exacta o rama critica completa: no se toca nada,
             // ni la clave entera ni un valor suelto.
             if (RegKeysProtegidas.Contains(keyPath) || RegProtegida(keyPath)) return;
+
+            // Preferencias y perfiles de navegadores: tampoco.
+            if (BrowserGuard.EsClaveProtegida(keyPath)) return;
 
             var baseKey = RegistryHelpers.OpenHive(hive);
             if (baseKey is null) return;

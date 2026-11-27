@@ -20,13 +20,30 @@ public sealed class DeepScanUpdate
     public double Percent { get; set; }
 }
 
+/// Una app de Winapp2 dentro de la limpieza profunda, con su propia casilla:
+/// el usuario puede excluirla sin descartar el resto de la categoria.
+public sealed class DeepAppItem
+{
+    public FluentCleaner.Models.CleanerEntry Entry { get; init; } = null!;
+    public FluentCleaner.Models.ScanResult Scan { get; init; } = null!;
+    public bool Incluida { get; set; } = true;
+    public string Nombre => Entry.Name;
+    /// Solo los archivos que esta app aporta de verdad (sin repetir los que otra
+    /// app ya habia contado): asi la suma de las apps coincide con el total.
+    public long Bytes { get; set; }
+    public int Archivos { get; set; }
+    public int Registro => Scan.RegistryToDelete.Count;
+}
+
 public sealed class DeepCatResult
 {
     public string Name { get; set; } = "";
+    /// Si es false, la categoria entera se salta al limpiar.
+    public bool Incluida { get; set; } = true;
     public List<string> Dirs { get; set; } = new();
     public List<string> Files { get; set; } = new();
     public Dictionary<string, long> Sizes { get; set; } = new(StringComparer.OrdinalIgnoreCase);
-    public List<(CleanerEntry Entry, ScanResult Scan)> Apps { get; set; } = new();
+    public List<DeepAppItem> Apps { get; set; } = new();
     public long Bytes { get; set; }
     public int RegistryCount { get; set; }   // claves/valores de registro a borrar (no cuentan bytes)
     public bool IsRecycle { get; set; }
@@ -46,6 +63,32 @@ public static class DeepCleanService
 
     public static DateTime? LastClean { get; set; }
 
+    /// Totales de lo que el usuario dejo marcado (la interfaz muestra esto, no el
+    /// total del analisis: si destilda una app o una categoria, los numeros bajan).
+    public static (long bytes, int files, int regs) TotalesSeleccionados(IEnumerable<DeepCatResult> cats)
+    {
+        long bytes = 0; int files = 0, regs = 0;
+        foreach (var c in cats)
+        {
+            if (!c.Incluida) continue;
+            if (c.IsApps)
+            {
+                foreach (var app in c.Apps.Where(a => a.Incluida))
+                {
+                    bytes += app.Bytes;
+                    files += app.Archivos;
+                    regs += app.Registro;
+                }
+            }
+            else
+            {
+                bytes += c.Bytes;
+                files += c.Files.Count;
+            }
+        }
+        return (bytes, files, regs);
+    }
+
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     private static extern int SHEmptyRecycleBin(IntPtr hwnd, string? pszRootPath, uint dwFlags);
 
@@ -61,10 +104,23 @@ public static class DeepCleanService
         {
             if (token.IsCancellationRequested) break;
             var cat = cats[i];
+            if (!cat.Incluida) { ctx.Done++; ctx.Report(DeepPhase.Clean, i, CatState.Done, "", 0, 1); continue; }
+
             ctx.Report(DeepPhase.Clean, i, CatState.Cleaning, cat.Name, 0, 0);
             int catFiles = 0;
             long catBytes = 0;
-            int target = Math.Max(1, cat.Files.Count);
+
+            // En la categoria de apps, el usuario puede haber desmarcado alguna:
+            // solo se borran los archivos de las que siguen incluidas.
+            HashSet<string>? permitidos = null;
+            if (cat.IsApps)
+            {
+                permitidos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var app in cat.Apps.Where(a => a.Incluida))
+                    foreach (var f in app.Scan.FilesToDelete)
+                        permitidos.Add(f);
+            }
+            int target = Math.Max(1, permitidos?.Count ?? cat.Files.Count);
 
             if (cat.IsRecycle)
             {
@@ -91,6 +147,7 @@ public static class DeepCleanService
                 foreach (var f in cat.Files)
                 {
                     if (token.IsCancellationRequested) break;
+                    if (permitidos is not null && !permitidos.Contains(f)) continue;
                     // Barrera de seguridad: las rutas de Winapp2 pueden apuntar a
                     // cualquier lado; nunca borramos zonas criticas, enlaces ni
                     // archivos recien modificados. En las apps ademas protegemos los
@@ -228,6 +285,7 @@ public static class DeepCleanService
                 if (len < 0) continue;
                 if (!ctx.Seen.Add(f)) continue;
                 cat.Files.Add(f);
+                cat.Sizes[f] = len;
                 cat.Bytes += len;
                 ctx.Total += len;
                 ctx.Files++;
@@ -275,18 +333,21 @@ public static class DeepCleanService
             catch (OperationCanceledException) { return; }
             catch (Exception ex) { AppLog.Error(ex, "Analizando regla: " + e.Name); i++; continue; }
 
+            var item = new DeepAppItem { Entry = e, Scan = r };
             foreach (var f in r.FilesToDelete)
             {
-                if (!ctx.Seen.Add(f)) continue;
                 long sz = r.FileSizes.TryGetValue(f, out var s) ? s : 0;
+                if (!ctx.Seen.Add(f)) continue;   // ya lo conto otra app
                 cat.Files.Add(f);
                 cat.Sizes[f] = sz;
                 cat.Bytes += sz;
                 ctx.Total += sz;
                 ctx.Files++;
+                item.Bytes += sz;
+                item.Archivos++;
             }
             cat.RegistryCount += r.RegistryToDelete.Count;
-            cat.Apps.Add((e, r));
+            cat.Apps.Add(item);
             i++;
         }
         ctx.Done++;
@@ -309,6 +370,7 @@ public static class DeepCleanService
                 if (len < 0) continue;
                 if (!ctx.Seen.Add(f)) continue;
                 cat.Files.Add(f);
+                cat.Sizes[f] = len;
                 cat.Bytes += len;
                 ctx.Total += len;
                 ctx.Files++;
@@ -376,9 +438,9 @@ public static class DeepCleanService
         try
         {
             var expander = new PathExpander();
-            foreach (var (entry, _) in cat.Apps)
+            foreach (var app in cat.Apps.Where(a => a.Incluida))
             {
-                foreach (var fk in entry.FileKeys)
+                foreach (var fk in app.Entry.FileKeys)
                 {
                     if (fk.Flag != FileKeyFlag.RemoveSelf) continue;
                     foreach (var d in expander.ResolvePaths(fk.Path))
@@ -395,10 +457,10 @@ public static class DeepCleanService
     private static int DeleteRegistry(DeepCatResult cat)
     {
         int n = 0;
-        foreach (var (_, scan) in cat.Apps)
+        foreach (var app in cat.Apps.Where(a => a.Incluida))
         {
-            n += scan.RegistryToDelete.Count;
-            try { ScanEngine.DeleteRegistry(scan); }
+            n += app.Scan.RegistryToDelete.Count;
+            try { ScanEngine.DeleteRegistry(app.Scan); }
             catch (Exception ex) { AppLog.Error(ex, "Borrando registro (limpieza profunda)"); }
         }
         return n;

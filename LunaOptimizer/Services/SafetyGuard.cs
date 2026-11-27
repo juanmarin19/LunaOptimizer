@@ -114,6 +114,9 @@ public static class SafetyGuard
 
         if (!RutaPermitida(full, out motivo)) return false;
 
+        // Datos de navegadores: historial, cookies, sesiones, contraseñas... no se tocan.
+        if (BrowserGuard.EsDatoProtegido(full, out motivo)) return false;
+
         try { if (!fi.Exists) { motivo = "no existe"; return false; } }
         catch { motivo = "no accesible"; return false; }
 
@@ -159,6 +162,9 @@ public static class SafetyGuard
 
         if (!RutaPermitida(path, out motivo)) return false;
 
+        // Datos de navegadores: solo cache; historial, cookies y sesiones quedan.
+        if (BrowserGuard.EsDatoProtegido(path, out motivo)) return false;
+
         if ((atributos & FileAttributes.ReparsePoint) != 0) { motivo = "es un enlace (reparse point)"; return false; }
 
         if (protegerEjecutables && ExtensionesProtegidas.Contains(Path.GetExtension(path)))
@@ -181,6 +187,9 @@ public static class SafetyGuard
         catch { return false; }
 
         if (!RutaPermitida(full, out _)) return false;
+
+        // Nunca borrar una carpeta de perfil de navegador (aunque quede vacia).
+        if (BrowserGuard.EsDatoProtegido(full)) return false;
 
         try
         {

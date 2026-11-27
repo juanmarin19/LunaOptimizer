@@ -25,6 +25,17 @@ grande para mejorar el rendimiento.
 | — | **Smart Boost**: optimiza solo cuando la RAM o los temporales pasan del umbral |
 | — | **Inicio con Windows** desde Ajustes, con umbrales configurables |
 
+### Vista previa y navegadores (2.1)
+
+- **Antes de borrar, se ve qué se va a borrar**: cada categoría se despliega con la
+  lista de archivos (nombre, carpeta y tamaño) o de aplicaciones con su caché, y se
+  puede **destildar** una categoría o una app concreta para conservarla.
+- **Datos de navegadores protegidos**: de Chrome, Edge, Firefox, Brave, Opera y Vivaldi
+  solo se limpia la **caché**. Historial, contraseñas, cookies, sesiones, marcadores,
+  `Local Storage`, `IndexedDB` y preferencias **no se tocan**, y tampoco se borran sus
+  claves de registro. El filtro se aplica al analizar (no aparecen en la lista) y otra
+  vez al borrar.
+
 ### Rendimiento de la limpieza (2.0.1)
 
 Un TEMP de 30.000 archivos pasó de **~43 s a ~4 s**. Lo que se cambió:
@@ -45,7 +56,7 @@ Un TEMP de 30.000 archivos pasó de **~43 s a ~4 s**. Lo que se cambió:
 ## Descargar
 
 1. Entra en **[Releases](../../releases/latest)** y descarga el `.exe`
-   (**`LunaOptimizer-V2.0.1.exe`**).
+   (**`LunaOptimizer-V2.1.0.exe`**).
 2. Doble clic → acepta el **UAC** (Windows pide permiso de administrador).
 3. Listo: no hay instalador, puedes dejarlo en el Escritorio o en una memoria USB.
 
@@ -136,10 +147,17 @@ Lista las **aplicaciones instaladas** con el espacio que ocupan sus datos de cac
 
 1. **Examinando** → barra de progreso, el elemento actual y los cinco grupos pasando de
    _Esperando a examinar…_ a _Descubierto X_.
-2. Al terminar: `Se detectaron X para limpiar` y el botón cambia a **Limpiar**
-   (mientras analiza es **Cancelar** y detiene el análisis).
-3. **Limpiar** → pide confirmación → borra y muestra lo liberado por grupo.
-4. **← Volver** regresa a la pestaña anterior.
+2. Al terminar se muestra el **detalle de lo que se va a borrar**: una tarjeta por
+   categoría con su casilla, tamaño y, al desplegarla, la lista de archivos (nombre,
+   carpeta y tamaño) o de aplicaciones con su caché. La primera categoría se abre sola.
+3. **Destilda** lo que quieras conservar: el botón y los totales se recalculan
+   (`Limpiar 640 MB`), y lo que quede sin marcar no se toca.
+4. **Limpiar** → pide confirmación → borra y muestra lo liberado por grupo.
+5. **← Volver** regresa a la pestaña anterior.
+
+> **Navegadores:** historial, contraseñas, cookies, sesiones y marcadores quedan intactos;
+> de Chrome, Edge, Firefox, Brave, Opera y Vivaldi solo se borra la caché. Esos archivos
+> no aparecen ni en la lista.
 
 **Grupos analizados:** elementos recomendados (`%TEMP%`, `C:\Windows\Temp` y el Temp de cada
 usuario), otros del sistema (Windows Update, INetCache, Delivery Optimization, informes WER),
@@ -196,6 +214,10 @@ se tratan como éxito.
   archivos modificados en los últimos 5 minutos.
 - **MediaGuard**: si hay vídeo, juego o música en curso no se libera RAM ni se borran cachés
   de GPU, para no cortar la reproducción.
+- **BrowserGuard**: dentro de los perfiles de navegador solo se permite la caché
+  (`Cache`, `Code Cache`, `GPUCache`, `CacheStorage`, `cache2`…); historial, cookies,
+  sesiones, contraseñas, `Local Storage`, `IndexedDB` y preferencias se rechazan, igual
+  que las claves de registro de los navegadores.
 - Los archivos grandes se envían a la **papelera**, nunca se borran de forma definitiva.
 - Nada se elimina sin confirmación previa.
 
