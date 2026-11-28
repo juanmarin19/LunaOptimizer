@@ -33,6 +33,7 @@ public partial class HomeView : UserControl
     public void Refresh()
     {
         UpdateMemory();
+        _ = UpdatePesadasAsync();
         UpdateApps();
         UpdateDisk();
         UpdateRevision();
@@ -200,6 +201,15 @@ public partial class HomeView : UserControl
         _cts = new CancellationTokenSource();
         try
         {
+            // PC Manager tambien ofrece cerrar apps pesadas de fondo como parte del boost.
+            var pesadas = BoostApps.Detectar();
+            var aCerrar = ChkPesadas.IsChecked == true ? pesadas : new List<AppPesada>();
+            if (aCerrar.Count > 0)
+            {
+                TxtHint.Text = $"Cerrando {aCerrar.Count} app(s) pesadas...";
+                await Task.Run(() => BoostApps.Cerrar(aCerrar));
+            }
+
             var boost = await Task.Run(() => MemoryBoost.Boost());
             TxtHint.Text = "Borrando temporales...";
             var prog = new Progress<string>(s => TxtHint.Text = s);
@@ -208,7 +218,9 @@ public partial class HomeView : UserControl
             var r = await TempCleaner.QuickCleanAsync(prog, _cts.Token, null, avance, totalTemps);
 
             TxtHint.Text = ResumenBoost(boost.trimmed, boost.multimedia, boost.usoAntesMB, boost.usoDespuesMB, r)
+                           + (aCerrar.Count > 0 ? $" · {aCerrar.Count} apps pesadas cerradas" : "")
                            + $" ({DateTime.Now:HH:mm}).";
+            _ = UpdatePesadasAsync();
             if (boost.multimedia)
                 _status($"Multimedia en curso: no se tocó la RAM. {r.FilesDeleted} temporales borrados.");
             else
@@ -228,6 +240,33 @@ public partial class HomeView : UserControl
             BtnCancel.Visibility = Visibility.Collapsed;
             BtnBoost.IsEnabled = true;
         }
+    }
+
+    private async Task UpdatePesadasAsync()
+    {
+        try
+        {
+            var pesadas = await Task.Run(BoostApps.Detectar);
+            if (pesadas.Count == 0)
+            {
+                PanelPesadas.Visibility = Visibility.Collapsed;
+                return;
+            }
+            long totalMb = pesadas.Sum(a => a.RamMB);
+            TxtPesadas.Text = pesadas.Count == 1
+                ? $"{pesadas[0].Nombre} en segundo plano · {totalMb / 1024.0:F1} GB"
+                : $"{pesadas.Count} apps pesadas en segundo plano · {totalMb / 1024.0:F1} GB";
+            TxtPesadasSub.Text = pesadas.Count == 1 ? "Cerrarla al optimizar" : "Cerrarlas al optimizar";
+            ChkPesadas.IsChecked = SettingsStore.Current.CerrarAppsPesadas;
+            PanelPesadas.Visibility = Visibility.Visible;
+        }
+        catch (Exception ex) { AppLog.Error(ex, "detectando apps pesadas"); }
+    }
+
+    private void ChkPesadas_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsStore.Current.CerrarAppsPesadas = ChkPesadas.IsChecked == true;
+        SettingsStore.Save();
     }
 
     private void BtnCancel_Click(object sender, RoutedEventArgs e)
@@ -277,6 +316,15 @@ public partial class HomeView : UserControl
             long totalTemps = await Task.Run(() => TempCleaner.MeasureTemp().bytes);
             var avance = new Progress<double>(p => { if (p > BarAct.Value) BarAct.Value = p; });
             var r = await TempCleaner.QuickCleanAsync(prog, _cts.Token, null, avance, totalTemps);
+            // PC Manager tambien ofrece cerrar apps pesadas de fondo como parte del boost.
+            var pesadas = BoostApps.Detectar();
+            var aCerrar = ChkPesadas.IsChecked == true ? pesadas : new List<AppPesada>();
+            if (aCerrar.Count > 0)
+            {
+                TxtHint.Text = $"Cerrando {aCerrar.Count} app(s) pesadas...";
+                await Task.Run(() => BoostApps.Cerrar(aCerrar));
+            }
+
             var boost = await Task.Run(() => MemoryBoost.Boost());
 
             string extra = failedClose > 0 ? $", {failedClose} protegidos" : "";

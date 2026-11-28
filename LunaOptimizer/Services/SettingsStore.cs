@@ -12,6 +12,8 @@ public class AppSettings
     public bool TemaOscuro { get; set; }
     /// <summary>PC Manager: "Smart Boost" — optimiza solo cuando el PC se pone lento.</summary>
     public bool SmartBoost { get; set; }
+    /// <summary>Al optimizar, cerrar apps pesadas de fondo (Discord, Steam...). Apagado por defecto.</summary>
+    public bool CerrarAppsPesadas { get; set; }
     public int SmartBoostRamPct { get; set; } = 90;
     public int SmartBoostTempMB { get; set; } = 1024;
     public bool IniciarConWindows { get; set; }

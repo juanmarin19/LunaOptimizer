@@ -47,7 +47,7 @@
                             VerticalAlignment="Center" Content="Smart Boost" Click="BtnSmart_Click"
                             ToolTip="Optimiza solo cuando la memoria o los temporales pasan del limite"/>
                 </Grid>
-                <TextBlock Text="Libera recursos para que tu PC vaya mas rápido." Style="{StaticResource Body}"
+                <TextBlock Text="Libera recursos para que tu PC vaya más rápido." Style="{StaticResource Body}"
                            Margin="0,4,0,0"/>
 
                 <!-- Dos indicadores con barra vertical, como PC Manager -->
@@ -105,6 +105,24 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed"
                             Click="BtnCancel_Click"/>
                 </Grid>
+                <Border x:Name="PanelPesadas" Visibility="Collapsed" Margin="0,10,0,0"
+                        BorderBrush="{DynamicResource B_Border}" BorderThickness="1"
+                        CornerRadius="6" Padding="10,7">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock x:Name="TxtPesadas" FontSize="10.5" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource B_Text}"/>
+                            <TextBlock x:Name="TxtPesadasSub" Text="Cerrarlas al optimizar" FontSize="9.5"
+                                       Foreground="{DynamicResource B_Sub}"/>
+                        </StackPanel>
+                        <CheckBox x:Name="ChkPesadas" Grid.Column="1" VerticalAlignment="Center"
+                                  Margin="8,0,0,0" Click="ChkPesadas_Click"/>
+                    </Grid>
+                </Border>
             </StackPanel>
         </Border>
 

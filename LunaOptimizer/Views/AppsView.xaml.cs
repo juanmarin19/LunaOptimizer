@@ -25,31 +25,55 @@ public partial class AppsView : UserControl
 
     public void Refresh()
     {
+        if (_cargando) return;
+        _cargando = true;
         TxtEmpty.Text = "Leyendo aplicaciones instaladas...";
         TxtEmpty.Visibility = Visibility.Visible;
-        _ = Task.Run(() =>
+        _ = CargarAsync();
+    }
+
+    private bool _cargando;
+
+    private async Task CargarAsync()
+    {
+        try
         {
-            try
+            // 1) Programas del registro (WIN32). Rapido.
+            var apps = await Task.Run(AppUninstallerService.GetInstalledApps);
+            Dispatcher.Invoke(() =>
             {
-                var apps = AppUninstallerService.GetInstalledApps();
+                _all = apps;
+                ApplyFilter();
+                TxtEmpty.Visibility = apps.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+                if (apps.Count == 0) TxtEmpty.Text = "No se encontraron apps.";
+            });
+
+            // 2) Apps de la Microsoft Store (MSIX), como hace PC Manager.
+            var store = await AppUninstallerService.GetStoreAppsAsync();
+            if (store.Count > 0)
+            {
                 Dispatcher.Invoke(() =>
                 {
-                    _all = apps;
+                    _all = _all.Concat(store)
+                        .OrderBy(a => a.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
                     ApplyFilter();
-                    TxtEmpty.Visibility = apps.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-                    if (apps.Count == 0) TxtEmpty.Text = "No se encontraron apps.";
                 });
+
+                // 3) Tamano de las MSIX: en segundo plano y con tope de tiempo.
+                await Task.Run(() => AppUninstallerService.MedirTamanoApps(store));
+                Dispatcher.Invoke(ApplyFilter);
             }
-            catch (Exception ex)
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error(ex, "Listando apps instaladas");
+            Dispatcher.Invoke(() =>
             {
-                AppLog.Error(ex, "Listando apps instaladas");
-                Dispatcher.Invoke(() =>
-                {
-                    TxtEmpty.Text = "No se pudieron leer las apps instaladas.";
-                    TxtEmpty.Visibility = Visibility.Visible;
-                });
-            }
-        });
+                TxtEmpty.Text = "No se pudieron leer las apps instaladas.";
+                TxtEmpty.Visibility = Visibility.Visible;
+            });
+        }
+        finally { _cargando = false; }
     }
 
     private void ApplyFilter()
@@ -90,7 +114,9 @@ public partial class AppsView : UserControl
         btn.IsEnabled = false;
         _status?.Invoke($"Desinstalando {app.Name}...");
 
-        var (code, err) = await Task.Run(() => AppUninstallerService.Uninstall(app));
+        var (code, err) = app.EsAppx
+            ? await AppUninstallerService.UninstallStoreAsync(app)
+            : await Task.Run(() => AppUninstallerService.Uninstall(app));
 
         // 0 = OK; 3010/1641 = OK pero pide reiniciar (Windows lo interpreta como exito).
         bool ok = code is 0 or 3010 or 1641;
@@ -101,6 +127,18 @@ public partial class AppsView : UserControl
             string avisoReinicio = code is 3010 or 1641 ? " (reinicia para terminar)" : "";
             _status?.Invoke($"{app.Name} desinstalado{avisoReinicio}." + (regBorrada ? "" : " (entrada del registro conservada)"));
             _status?.Invoke($"Desinstalado: {app.Name}.");
+
+            // Como PC Manager: si el desinstalador dejo carpetas, se ofrecen.
+            var restos = await Task.Run(() => AppUninstallerService.BuscarRestos(app));
+            if (restos.Count > 0)
+            {
+                var dlg = new RestosWindow(app.Name, restos) { Owner = Window.GetWindow(this) };
+                dlg.ShowDialog();
+                if (dlg.Borrados > 0)
+                    _status?.Invoke($"Restos de {app.Name}: {dlg.Borrados} carpetas a la papelera " +
+                                    $"({TempCleaner.FormatBytes(dlg.BytesLiberados)}).");
+            }
+
             Refresh();
         }
         else

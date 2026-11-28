@@ -175,12 +175,17 @@ public static class StorageService
         }, token).ConfigureAwait(false);
     }
 
-    /// <summary>Borra a la papelera (recuperable), nunca definitivo.</summary>
+    /// <summary>Borra a la papelera (recuperable), nunca definitivo. Acepta archivos y carpetas.</summary>
     public static bool EnviarAPapelera(string ruta)
     {
         try
         {
-            if (!SafetyGuard.CanDelete(ruta, out _)) return false;
+            bool esCarpeta = Directory.Exists(ruta);
+            if (esCarpeta)
+            {
+                if (!SafetyGuard.CanDeleteEmptyDir(ruta)) return false;
+            }
+            else if (!SafetyGuard.CanDelete(ruta, out _)) return false;
             var op = new SHFILEOPSTRUCT
             {
                 wFunc = FO_DELETE,

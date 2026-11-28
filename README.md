@@ -25,6 +25,40 @@ grande para mejorar el rendimiento.
 | — | **Smart Boost**: optimiza solo cuando la RAM o los temporales pasan del umbral |
 | — | **Inicio con Windows** desde Ajustes, con umbrales configurables |
 
+### Lo que se copió de PC Manager (2.3)
+
+Después de inspeccionar los binarios de Microsoft PC Manager 3.23 (`Microsoft.WIC.PCManager.*`),
+estas son las mecánicas que usa y que ahora tiene LunaOptimizer:
+
+- **Cerrar apps con Job Objects.** PC Manager no mata procesos de uno en uno: crea un
+  `Job Object`, le asigna el árbol completo y lo termina (`CreateJobObject` +
+  `AssignProcessToJobObject` + `TerminateJobObject`). Así no quedan procesos huérfanos ni
+  ventanas fantasma cuando una app lanza hijos (Chrome, Brave, Discord…). LunaOptimizer hace
+  exactamente eso, y **antes** pide un cierre ordenado (`WM_CLOSE`) y espera 2,5 s para que
+  la app guarde su estado; si no responde, fuerza. Un proceso del sistema (o `explorer`) se
+  rechaza **entero**, con sus hijos: nunca se cierra nada del shell.
+- **Apps de la Microsoft Store.** Se listan los paquetes MSIX con `Get-AppxPackage`
+  (eliendo frameworks, recursos, paquetes NonRemovable y componentes de Windows) y se
+  desinstalan con `Remove-AppxPackage`, que es lo único que funciona: su entrada del registro
+  no tiene `UninstallString`. Aparecen mezcladas con los programas de escritorio.
+- **Restos de una desinstalación.** Como PC Manager, después de desinstalar se buscan
+  carpetas huérfanas: la carpeta de instalación si el desinstalador la dejó, y carpetas cuyo
+  nombre empieza con el del programa o el del editor en `LocalAppData`, `Roaming`,
+  `ProgramData`, `Program Files` y `LocalAppData\Packages`. Se muestran con su tamaño y se
+  pueden destildar; lo que se borra **va a la papelera**. Nunca se propone `C:\Windows`,
+  `C:\Program Files` ni carpetas del sistema, y las palabras genéricas (`windows`,
+  `microsoft`, `store`…) no se usan para buscar.
+- **Apps pesadas en el boost.** PC Manager trae una lista curada (Discord, Razer, Grammarly…)
+  y ofrece cerrarlas al optimizar. El Inicio muestra `Discord en segundo plano · 1.1 GB` con
+  un interruptor **Cerrarla al optimizar**, apagado por defecto; si se activa, se cierran con
+  el mismo mecanismo ordenado + Job Object antes de liberar RAM.
+
+[![Restos de una desinstalación](docs/restos.png)](docs/restos.png)
+
+Lo mismo que PC Manager ya hacía y se mantiene: Boost por etapas (working set → lista
+modificada → standby) vía `NtSetSystemInformation`, lista de procesos solo con apps que
+tienen ventana visible y lista protegida, y el árbol de limpieza con casillas.
+
 ### Pantalla de limpieza estilo PC Manager (2.2)
 
 - **Cabecera**: `Un total de X elementos detectados` + `Seleccionado: Y` + botón **Continuar**.
@@ -72,7 +106,7 @@ Un TEMP de 30.000 archivos pasó de **~43 s a ~4 s**. Lo que se cambió:
 ## Descargar
 
 1. Entra en **[Releases](../../releases/latest)** y descarga el `.exe`
-   (**`LunaOptimizer-V2.2.0.exe`**).
+   (**`LunaOptimizer-V2.3.0.exe`**).
 2. Doble clic → acepta el **UAC** (Windows pide permiso de administrador).
 3. Listo: no hay instalador, puedes dejarlo en el Escritorio o en una memoria USB.
 

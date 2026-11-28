@@ -173,7 +173,7 @@
                         <RadioButton x:Name="NavClean" DockPanel.Dock="Top" Style="{StaticResource NavBtn}"
                                      Tag="{StaticResource I.Sparkle}" Content="Limpieza" Checked="NavClean_Checked"/>
                         <RadioButton x:Name="NavApps" DockPanel.Dock="Top" Style="{StaticResource NavBtn}"
-                                     Tag="{StaticResource I.Grid}" Content="Aplicaciónes" Checked="NavApps_Checked"/>
+                                     Tag="{StaticResource I.Grid}" Content="Aplicaciones" Checked="NavApps_Checked"/>
                         <RadioButton x:Name="NavTools" DockPanel.Dock="Top" Style="{StaticResource NavBtn}"
                                      Tag="{StaticResource I.Toolbox}" Content="Herramientas" Checked="NavTools_Checked"/>
 

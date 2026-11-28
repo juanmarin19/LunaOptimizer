@@ -203,39 +203,34 @@ public static class ProcessService
     public static (int killed, int failed) KillGroup(ProcessGroup g)
     {
         if (ProtectedNames.Contains(g.Name)) return (0, 0);
-        Process[] targets;
-        try { targets = Process.GetProcessesByName(g.Name); }
-        catch { return (0, 1); }
-        int killed = 0, failed = 0;
-        foreach (var p in targets)
+
+        // Igual que PC Manager: cierre ordenado y, si no responde, Job Object con
+        // todo el arbol (asi no quedan hijos huerfanos).
+        var pids = new List<int>(g.PidList);
+        if (pids.Count == 0)
         {
-            try
-            {
-                if (IsProtected(p.ProcessName, p.Id)) { failed++; continue; }
-                if (KillCore(p)) killed++; else failed++;
-            }
-            catch { failed++; }
-            finally { try { p.Dispose(); } catch { } }
+            try { pids.AddRange(Process.GetProcessesByName(g.Name).Select(p => { try { return p.Id; } finally { p.Dispose(); } })); }
+            catch { return (0, 1); }
         }
-        return (killed, failed);
+
+        var r = AppCloser.Cerrar(g.Name, pids);
+        return (r.Cerrados, r.Fallidos);
     }
 
     public static (bool ok, string msg) KillProcess(int pid)
     {
         try
         {
-            var p = Process.GetProcessById(pid);
-            try
+            string name;
+            using (var p = Process.GetProcessById(pid))
             {
-                string name = p.ProcessName;
-                if (IsProtected(name, p.Id))
+                name = p.ProcessName;
+                if (IsProtected(name, pid))
                     return (false, $"Protegido: no se puede cerrar {name} del sistema.");
-                if (!KillCore(p))
-                    return (false, $"No se pudo terminar {name} ({pid}).");
-                p.WaitForExit(3000);
-                return (true, $"{name} ({pid}) terminado.");
             }
-            finally { try { p.Dispose(); } catch { } }
+
+            var r = AppCloser.Cerrar(name, new[] { pid });
+            return (r.Fallidos == 0, r.Detalle);
         }
         catch (Exception ex) { return (false, ex.Message); }
     }
