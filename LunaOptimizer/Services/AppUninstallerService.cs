@@ -42,6 +42,9 @@ public class InstalledApp
     public bool IsStore => KeyPath.IndexOf("WindowsApps", StringComparison.OrdinalIgnoreCase) >= 0;
 
     /// Paquete MSIX/Store (se desinstala con Remove-AppxPackage, no con el registro).
+    /// Icono del programa, para que la lista se vea como la de PC Manager.
+    public System.Windows.Media.Imaging.BitmapSource? Icon { get; set; }
+
     public string? PackageFullName { get; set; }
     public bool EsAppx => !string.IsNullOrEmpty(PackageFullName);
 }
@@ -320,6 +323,61 @@ public static class AppUninstallerService
             AppLog.Error(ex, "desinstalando app Store " + app.Name);
             return (-1, ex.Message);
         }
+    }
+
+    // ===================== Iconos =====================
+    // PC Manager lista las apps con su icono. Se saca del DisplayIcon del registro
+    // ("C:\ruta\app.exe,0", a veces entre comillas o con variables de entorno) o,
+    // si no hay, del primer .exe de la carpeta de instalacion. Corre en paralelo y
+    // con tope de tiempo: un icono lento no puede demorar la lista.
+
+    public static void CargarIconos(IEnumerable<InstalledApp> apps, int presupuestoMs = 5000)
+    {
+        var reloj = System.Diagnostics.Stopwatch.StartNew();
+        try
+        {
+            Parallel.ForEach(apps.Where(a => a.Icon is null), new ParallelOptions { MaxDegreeOfParallelism = 4 }, app =>
+            {
+                if (reloj.ElapsedMilliseconds > presupuestoMs) return;
+                try
+                {
+                    string? exe = ExeParaIcono(app);
+                    if (exe is null) return;
+                    app.Icon = IconHelper.Extract(exe);
+                }
+                catch { }
+            });
+        }
+        catch { }
+    }
+
+    private static string? ExeParaIcono(InstalledApp app)
+    {
+        // 1) DisplayIcon del registro
+        string icono = (app.DisplayIcon ?? "").Trim().Trim('"');
+        if (icono.Length > 0)
+        {
+            try { icono = Environment.ExpandEnvironmentVariables(icono); } catch { }
+            int coma = icono.LastIndexOf(',');
+            if (coma > 2 && int.TryParse(icono[(coma + 1)..].Trim(), out _))
+                icono = icono[..coma];
+            icono = icono.Trim().Trim('"');
+            if (File.Exists(icono) && icono.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) return icono;
+            if (File.Exists(icono) && icono.EndsWith(".ico", StringComparison.OrdinalIgnoreCase)) return icono;
+        }
+
+        // 2) primer .exe de la carpeta de instalacion (sin bajar a subcarpetas)
+        if (!string.IsNullOrWhiteSpace(app.InstallLocation) && Directory.Exists(app.InstallLocation))
+        {
+            try
+            {
+                return Directory.EnumerateFiles(app.InstallLocation, "*.exe", SearchOption.TopDirectoryOnly)
+                    .OrderByDescending(f => new FileInfo(f).Length)
+                    .FirstOrDefault();
+            }
+            catch { }
+        }
+        return null;
     }
 
     // ===================== Restos de una desinstalacion =====================

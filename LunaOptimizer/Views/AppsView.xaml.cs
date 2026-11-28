@@ -63,6 +63,11 @@ public partial class AppsView : UserControl
                 await Task.Run(() => AppUninstallerService.MedirTamanoApps(store));
                 Dispatcher.Invoke(ApplyFilter);
             }
+
+            // 4) Iconos, al final: un icono lento no puede demorar la lista.
+            var foto = _all.ToList();
+            await Task.Run(() => AppUninstallerService.CargarIconos(foto));
+            Dispatcher.Invoke(ApplyFilter);
         }
         catch (Exception ex)
         {

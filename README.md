@@ -30,6 +30,9 @@ grande para mejorar el rendimiento.
 - **Columna CPU** en Procesos, muestreada entre refrescos (sin dormir el hilo): el primer
   refresco la deja vacía y a los 1,5 s aparece sola. PC Manager no la muestra, así que esto
   es "un poco mejor".
+- **Iconos en la lista de Aplicaciones**: se sacan del `DisplayIcon` del registro o del
+  primer `.exe` de la carpeta de instalación, en paralelo y con tope de tiempo. Las que no
+  tienen icono igual quedan alineadas.
 - **Ordenar** por RAM, CPU o nombre, y en Aplicaciones por nombre o tamaño.
 - **Aplicaciones de la Store con etiqueta `Store`**, y subtítulo que arma
   `editor · versión · tamaño` salteando los datos que faltan (antes quedaba un `·` suelto).
@@ -121,7 +124,7 @@ Un TEMP de 30.000 archivos pasó de **~43 s a ~4 s**. Lo que se cambió:
 ## Descargar
 
 1. Entra en **[Releases](../../releases/latest)** y descarga el `.exe`
-   (**`LunaOptimizer-V2.4.0.exe`**).
+   (**`LunaOptimizer-V2.4.1.exe`**).
 2. Doble clic → acepta el **UAC** (Windows pide permiso de administrador).
 3. Listo: no hay instalador, puedes dejarlo en el Escritorio o en una memoria USB.
 

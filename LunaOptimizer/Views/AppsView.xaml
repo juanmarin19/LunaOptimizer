@@ -67,14 +67,19 @@
                         <DataTemplate>
                             <Grid>
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="24"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0">
+                                <!-- Siempre ocupa 22 px: si la app no tiene icono, el
+                                     texto igual queda alineado con las demas filas. -->
+                                <Image Source="{Binding Icon}" Width="22" Height="22" Stretch="Uniform"
+                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="{Binding Name}" FontSize="11.5" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource B_Text}"
-                                                   TextTrimming="CharacterEllipsis"/>
+                                                   TextTrimming="CharacterEllipsis" MaxWidth="190"/>
                                         <Border Margin="6,0,0,0" VerticalAlignment="Center" Padding="5,0"
                                                 CornerRadius="3" BorderThickness="1"
                                                 BorderBrush="{DynamicResource B_Border}"
@@ -97,7 +102,7 @@
                                                Foreground="{DynamicResource B_Muted}"
                                                TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
                                 </StackPanel>
-                                <Button Grid.Column="1" Content="Desinstalar" Tag="{Binding}"
+                                <Button Grid.Column="2" Content="Desinstalar" Tag="{Binding}"
                                         Click="BtnUninstall_Click" Style="{StaticResource LinkBtn}"
                                         Foreground="{DynamicResource B_Red}" FontSize="11"
                                         VerticalAlignment="Center"/>
