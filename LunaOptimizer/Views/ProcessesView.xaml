@@ -22,7 +22,7 @@
             <StackPanel>
                 <Grid>
                     <TextBox x:Name="TxtFilter" ToolTip="Filtrar por nombre" TextChanged="TxtFilter_TextChanged"/>
-                    <TextBlock x:Name="TxtFilterHint" Text="Buscar aplicacion" FontSize="12"
+                    <TextBlock x:Name="TxtFilterHint" Text="Buscar aplicación" FontSize="12"
                                Foreground="{DynamicResource B_Muted}" Margin="10,0,0,0"
                                VerticalAlignment="Center" IsHitTestVisible="False"/>
                 </Grid>
@@ -30,8 +30,15 @@
                 <WrapPanel Orientation="Horizontal" Margin="0,8,0,0">
                     <Button x:Name="BtnRefresh" Content="Actualizar" Style="{StaticResource MiniBtn}"
                             Margin="0,0,6,0" Click="BtnRefresh_Click"/>
-                    <Button x:Name="BtnLocation" Content="Ubicacion" Style="{StaticResource MiniBtn}"
+                    <Button x:Name="BtnLocation" Content="Ubicación" Style="{StaticResource MiniBtn}"
                             Margin="0,0,10,0" Click="BtnLocation_Click"/>
+                    <ComboBox x:Name="CmbOrden" Width="86" Height="28" Margin="0,0,6,0" FontSize="11.5"
+                              VerticalContentAlignment="Center" SelectionChanged="CmbOrden_Changed"
+                              ToolTip="Ordenar la lista">
+                        <ComboBoxItem Content="RAM" Tag="RAM" IsSelected="True"/>
+                        <ComboBoxItem Content="CPU" Tag="CPU"/>
+                        <ComboBoxItem Content="Nombre" Tag="Nombre"/>
+                    </ComboBox>
                     <CheckBox x:Name="ChkGroup" Content="Agrupar" IsChecked="True" Margin="0,0,10,0"
                               VerticalAlignment="Center" Checked="ChkGroup_Changed" Unchecked="ChkGroup_Changed"
                               ToolTip="Una fila por programa"/>
@@ -71,10 +78,16 @@
                                     <Setter Property="VerticalAlignment" Value="Center"/>
                                     <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                                     <Setter Property="Margin" Value="2,0,4,0"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Hung}" Value="True">
+                                            <Setter Property="Foreground" Value="{DynamicResource B_Red}"/>
+                                            <Setter Property="ToolTip" Value="Esta aplicación no responde"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
-                        <DataGridTextColumn x:Name="ColPids" Header="PIDs" Binding="{Binding Pids}" Width="64">
+                        <DataGridTextColumn x:Name="ColPids" Header="PIDs" Binding="{Binding Pids}" Width="52">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Foreground" Value="{DynamicResource B_Muted}"/>
@@ -87,6 +100,14 @@
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Foreground" Value="{DynamicResource B_Sub}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn x:Name="ColCpu" Header="CPU" Binding="{Binding CpuText}" Width="44">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{DynamicResource B_Muted}"/>
                                     <Setter Property="VerticalAlignment" Value="Center"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>

@@ -25,6 +25,21 @@ grande para mejorar el rendimiento.
 | — | **Smart Boost**: optimiza solo cuando la RAM o los temporales pasan del umbral |
 | — | **Inicio con Windows** desde Ajustes, con umbrales configurables |
 
+### Pulido de la interfaz y del rendimiento (2.4)
+
+- **Columna CPU** en Procesos, muestreada entre refrescos (sin dormir el hilo): el primer
+  refresco la deja vacía y a los 1,5 s aparece sola. PC Manager no la muestra, así que esto
+  es "un poco mejor".
+- **Ordenar** por RAM, CPU o nombre, y en Aplicaciones por nombre o tamaño.
+- **Aplicaciones de la Store con etiqueta `Store`**, y subtítulo que arma
+  `editor · versión · tamaño` salteando los datos que faltan (antes quedaba un `·` suelto).
+- **ComboBox con los colores del tema**: en oscuro salía blanco porque no había plantilla.
+- **Números y fechas en español**: la app fija `es-AR` al arrancar. Antes, en un Windows en
+  otro idioma, se mezclaban `59.66 GB` con `0,5 GB` en la misma pantalla.
+- Acentos corregidos: **Aplicaciones**, **Ubicación**, **Limpieza rápida**, **más rápido**.
+
+[![Procesos con CPU y orden](docs/procesos-2.4.png)](docs/procesos-2.4.png)
+
 ### Lo que se copió de PC Manager (2.3)
 
 Después de inspeccionar los binarios de Microsoft PC Manager 3.23 (`Microsoft.WIC.PCManager.*`),
@@ -106,7 +121,7 @@ Un TEMP de 30.000 archivos pasó de **~43 s a ~4 s**. Lo que se cambió:
 ## Descargar
 
 1. Entra en **[Releases](../../releases/latest)** y descarga el `.exe`
-   (**`LunaOptimizer-V2.3.0.exe`**).
+   (**`LunaOptimizer-V2.4.0.exe`**).
 2. Doble clic → acepta el **UAC** (Windows pide permiso de administrador).
 3. Listo: no hay instalador, puedes dejarlo en el Escritorio o en una memoria USB.
 

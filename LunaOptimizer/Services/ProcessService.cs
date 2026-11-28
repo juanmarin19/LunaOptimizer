@@ -137,7 +137,7 @@ public static class ProcessService
             BitmapSource? icon = null;
             if (withIcons && !string.IsNullOrEmpty(path))
                 icon = GetIconCached(path);
-            list.Add(new ProcessInfo { Pid = p.Id, Name = name, RamMB = ram, Status = status, Path = path, Icon = icon, CanKill = canKill });
+            list.Add(new ProcessInfo { Pid = p.Id, Name = name, RamMB = ram, Status = status, Path = path, Icon = icon, CanKill = canKill, CpuPct = CpuDe(p.Id) });
             try { p.Dispose(); } catch { }
         }
         return list.OrderByDescending(x => x.RamMB).ToList();
@@ -154,8 +154,54 @@ public static class ProcessService
     public static bool IsProtected(string name, int pid)
         => ProtectedNames.Contains(name) || pid == Environment.ProcessId;
 
+    // ================= CPU =================
+    // Se guarda el tiempo de CPU de la vuelta anterior y se calcula el delta
+    // contra el tiempo real transcurrido: igual que el Administrador de tareas,
+    // sin dormir el hilo (el primer refresco muestra vacio y el segundo ya tiene
+    // numero). El refresco automatico es cada 2 s, asi que el delta es estable.
+    private static readonly object CandadoCpu = new();
+    private static readonly Dictionary<int, (TimeSpan Cpu, DateTime Cuando)> _cpuPrev = new();
+    private static readonly int _nucleos = Math.Max(1, Environment.ProcessorCount);
+
+    internal static void MuestrearCpu()
+    {
+        var ahora = DateTime.UtcNow;
+        var vistos = new HashSet<int>();
+        foreach (var p in Process.GetProcesses())
+        {
+            try
+            {
+                vistos.Add(p.Id);
+                var cpu = p.TotalProcessorTime;
+                if (_cpuPrev.TryGetValue(p.Id, out var prev))
+                {
+                    double ms = (ahora - prev.Cuando).TotalMilliseconds;
+                    if (ms >= 200)
+                    {
+                        double pct = (cpu - prev.Cpu).TotalMilliseconds / (ms * _nucleos) * 100.0;
+                        _cpuPrev[p.Id] = (cpu, ahora);
+                        _cpuPct[p.Id] = Math.Clamp(pct, 0, 100);
+                    }
+                }
+                else _cpuPrev[p.Id] = (cpu, ahora);
+            }
+            catch { }
+            finally { try { p.Dispose(); } catch { } }
+        }
+        foreach (var k in _cpuPrev.Keys.Where(k => !vistos.Contains(k)).ToList()) _cpuPrev.Remove(k);
+        foreach (var k in _cpuPct.Keys.Where(k => !vistos.Contains(k)).ToList()) _cpuPct.Remove(k);
+    }
+
+    private static readonly Dictionary<int, double> _cpuPct = new();
+
+    internal static double CpuDe(int pid)
+    {
+        lock (CandadoCpu) return _cpuPct.TryGetValue(pid, out var v) ? v : 0;
+    }
+
     public static List<ProcessGroup> GetGroups(string filter = "", bool onlySafe = true)
     {
+        lock (CandadoCpu) MuestrearCpu();
         // En modo seguro: primero descubre QUE programas cuentan (al menos un
         // proceso con ventana o app empaquetada) y luego agrupa TODOS los
         // procesos de esos nombres, como hace PC Manager (Brave 2.3 GB = todos
@@ -191,6 +237,8 @@ public static class ProcessService
                     Icon = string.IsNullOrEmpty(first.Path) ? null : GetIconCached(first.Path),
                     CanKill = g.All(p => p.CanKill),
                     PidList = pids,
+                    CpuPct = Math.Round(Math.Min(100, g.Sum(p => p.CpuPct)), 1),
+                    Hung = g.Any(p => p.Status != "OK"),
                 };
             })
             .OrderByDescending(g => g.TotalRamMB)

@@ -76,13 +76,28 @@ public partial class AppsView : UserControl
         finally { _cargando = false; }
     }
 
+    private void CmbOrden_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (List is null) return;
+        ApplyFilter();
+    }
+
+    private IEnumerable<InstalledApp> Ordenar(IEnumerable<InstalledApp> apps)
+    {
+        string modo = (CmbOrden?.SelectedItem as ComboBoxItem)?.Tag as string ?? "Nombre";
+        return modo == "Tamano"
+            ? apps.OrderByDescending(a => a.EstimatedSizeKB).ThenBy(a => a.Name, StringComparer.CurrentCultureIgnoreCase)
+            : apps.OrderBy(a => a.Name, StringComparer.CurrentCultureIgnoreCase);
+    }
+
     private void ApplyFilter()
     {
         string f = (TxtFilter?.Text ?? "").Trim();
-        var items = string.IsNullOrWhiteSpace(f)
+        var filtradas = string.IsNullOrWhiteSpace(f)
             ? _all
             : _all.Where(a => a.Name.Contains(f, StringComparison.OrdinalIgnoreCase)
                            || a.Publisher.Contains(f, StringComparison.OrdinalIgnoreCase)).ToList();
+        var items = Ordenar(filtradas).ToList();
         List.ItemsSource = items;
         TxtCount.Text = $"{items.Count} apps";
     }

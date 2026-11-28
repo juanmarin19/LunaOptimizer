@@ -18,6 +18,12 @@ public partial class ProcessesView : UserControl
         _status = status;
         InitializeComponent();
         _ = RefreshAsync();
+
+        // La CPU se calcula entre dos lecturas: a los 1,5 s se refresca sola
+        // para que la columna no quede vacia hasta el proximo refresco.
+        var uno = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1500) };
+        uno.Tick += (_, _) => { uno.Stop(); _ = RefreshAsync(); };
+        uno.Start();
     }
 
     private async Task RefreshAsync()
@@ -41,6 +47,7 @@ public partial class ProcessesView : UserControl
                 ColRam.Header = "RAM MB";
                 ColRam.Binding = new System.Windows.Data.Binding("TotalRamMB");
                 var groups = await Task.Run(() => ProcessService.GetGroups(filter, onlySafe));
+                groups = Ordenar(groups, g => g.TotalRamMB, g => g.CpuPct, g => g.Name, descFirst: true);
                 Grid.ItemsSource = groups;
                 int totalProcs = groups.Sum(g => g.Count);
                 TxtCount.Text = $"{groups.Count} apps ({totalProcs} procesos)";
@@ -53,6 +60,7 @@ public partial class ProcessesView : UserControl
                 ColRam.Header = "RAM MB";
                 ColRam.Binding = new System.Windows.Data.Binding("RamMB");
                 var items = await Task.Run(() => ProcessService.GetProcesses(filter, onlySafe));
+                items = Ordenar(items, p => p.RamMB, p => p.CpuPct, p => p.Name, descFirst: true);
                 Grid.ItemsSource = items;
                 TxtCount.Text = $"{items.Count} procesos";
                 ActualizarVacio(items.Count);
@@ -69,6 +77,21 @@ public partial class ProcessesView : UserControl
             if (_pendingRefresh) { _pendingRefresh = false; _ = RefreshAsync(); }
         }
     }
+
+    /// Orden por RAM (desc), CPU (desc) o nombre (A-Z), segun el combo.
+    private List<T> Ordenar<T>(List<T> lista, Func<T, double> ram, Func<T, double> cpu,
+                               Func<T, string> nombre, bool descFirst)
+    {
+        string modo = (CmbOrden?.SelectedItem as ComboBoxItem)?.Tag as string ?? "RAM";
+        return modo switch
+        {
+            "CPU" => lista.OrderByDescending(cpu).ThenByDescending(ram).ToList(),
+            "Nombre" => lista.OrderBy(nombre, StringComparer.CurrentCultureIgnoreCase).ToList(),
+            _ => lista.OrderByDescending(ram).ThenByDescending(cpu).ToList(),
+        };
+    }
+
+    private void CmbOrden_Changed(object sender, SelectionChangedEventArgs e) => _ = RefreshAsync();
 
     /// Mensaje centrado cuando la lista no tiene nada que mostrar.
     private void ActualizarVacio(int n)

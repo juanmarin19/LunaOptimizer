@@ -20,6 +20,19 @@ public partial class App : Application
 
     public App()
     {
+        // Toda la app se muestra en espanol: los numeros y las fechas tambien.
+        // Sin esto, en un Windows en otro idioma se mezclaban "59.66 GB" con
+        // "0,5 GB" en la misma pantalla.
+        try
+        {
+            var es = System.Globalization.CultureInfo.GetCultureInfo("es-AR");
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = es;
+            System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = es;
+            Thread.CurrentThread.CurrentCulture = es;
+            Thread.CurrentThread.CurrentUICulture = es;
+        }
+        catch { }
+
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandled;
         TaskScheduler.UnobservedTaskException += OnUnobservedTask;

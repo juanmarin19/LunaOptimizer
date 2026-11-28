@@ -13,11 +13,23 @@
 
         <Border Style="{StaticResource Card}" Padding="12,10">
             <Grid>
-                <TextBox x:Name="TxtFilter" ToolTip="Filtrar por nombre o fabricante"
-                         TextChanged="TxtFilter_TextChanged"/>
-                <TextBlock x:Name="TxtFilterHint" Text="Buscar aplicacion" FontSize="12"
-                           Foreground="{DynamicResource B_Muted}" Margin="10,0,0,0"
-                           VerticalAlignment="Center" IsHitTestVisible="False"/>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid>
+                    <TextBox x:Name="TxtFilter" ToolTip="Filtrar por nombre o fabricante"
+                             TextChanged="TxtFilter_TextChanged"/>
+                    <TextBlock x:Name="TxtFilterHint" Text="Buscar aplicación" FontSize="12"
+                               Foreground="{DynamicResource B_Muted}" Margin="10,0,0,0"
+                               VerticalAlignment="Center" IsHitTestVisible="False"/>
+                </Grid>
+                <ComboBox x:Name="CmbOrden" Grid.Column="1" Width="96" Height="28" Margin="8,0,0,0"
+                          FontSize="11.5" VerticalContentAlignment="Center"
+                          SelectionChanged="CmbOrden_Changed" ToolTip="Ordenar la lista">
+                    <ComboBoxItem Content="Nombre" Tag="Nombre" IsSelected="True"/>
+                    <ComboBoxItem Content="Tamaño" Tag="Tamano"/>
+                </ComboBox>
             </Grid>
         </Border>
 
@@ -59,15 +71,31 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0">
-                                    <TextBlock Text="{Binding Name}" FontSize="11.5" FontWeight="SemiBold"
-                                               Foreground="{DynamicResource B_Text}"
-                                               TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock FontSize="10" Foreground="{DynamicResource B_Muted}"
-                                               TextTrimming="CharacterEllipsis" Margin="0,1,0,0">
-                                        <Run Text="{Binding Publisher, Mode=OneWay}"/><Run Text=" · "/><Run
-                                            Text="{Binding Version, Mode=OneWay}"/><Run Text=" · "/><Run
-                                            Text="{Binding SizeText, Mode=OneWay}"/>
-                                    </TextBlock>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Name}" FontSize="11.5" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource B_Text}"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <Border Margin="6,0,0,0" VerticalAlignment="Center" Padding="5,0"
+                                                CornerRadius="3" BorderThickness="1"
+                                                BorderBrush="{DynamicResource B_Border}"
+                                                Background="{DynamicResource B_AccentSoft}">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding EsAppx}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="Store" FontSize="8.5"
+                                                       Foreground="{DynamicResource B_Accent}"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Subtitle}" FontSize="10"
+                                               Foreground="{DynamicResource B_Muted}"
+                                               TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
                                 </StackPanel>
                                 <Button Grid.Column="1" Content="Desinstalar" Tag="{Binding}"
                                         Click="BtnUninstall_Click" Style="{StaticResource LinkBtn}"

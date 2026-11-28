@@ -208,7 +208,7 @@
             </Border>
         </Grid>
 
-        <!-- ===== Limpieza rapida ===== -->
+        <!-- ===== Limpieza rápida ===== -->
         <Border Style="{StaticResource Card}" Margin="0,0,0,8">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -216,7 +216,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
-                    <TextBlock Text="Limpieza rapida" FontSize="12.5" FontWeight="SemiBold"
+                    <TextBlock Text="Limpieza rápida" FontSize="12.5" FontWeight="SemiBold"
                                Foreground="{DynamicResource B_Text}"/>
                     <TextBlock x:Name="TxtLastClean" Text="Temporales, cachés y DNS. Como reiniciar sin reiniciar."
                                FontSize="10.5" Foreground="{DynamicResource B_Sub}" Margin="0,3,0,0"

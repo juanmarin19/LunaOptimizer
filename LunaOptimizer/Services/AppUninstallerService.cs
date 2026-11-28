@@ -29,6 +29,11 @@ public class InstalledApp
     public string QuietUninstallString { get; set; } = "";
 
     public long EstimatedSizeKB { get; set; }
+    /// Editor · version · tamaño, salteando los que esten vacios (las apps de la
+    /// Store suelen no tener editor o tamaño al principio).
+    public string Subtitle => string.Join(" · ", new[] { Publisher, Version, SizeText }
+        .Where(t => !string.IsNullOrWhiteSpace(t)));
+
     public string SizeText => EstimatedSizeKB <= 0 ? "" : EstimatedSizeKB >= 1024 * 1024
         ? $"{EstimatedSizeKB / 1024.0 / 1024:F2} GB"
         : EstimatedSizeKB >= 1024 ? $"{EstimatedSizeKB / 1024.0:F1} MB" : $"{EstimatedSizeKB} KB";

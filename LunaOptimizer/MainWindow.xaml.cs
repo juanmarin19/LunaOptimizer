@@ -52,6 +52,8 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         Host.Content = Home;
+        // CULTURA_DBG
+        try { TxtVersion.Text = System.Globalization.CultureInfo.CurrentCulture.Name + " " + (59.66).ToString("F2"); } catch { }
 
         SourceInitialized += (_, _) =>
         {
